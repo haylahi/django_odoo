@@ -64,6 +64,6 @@ def compute_float(number: str, rounding: str):
     :return: 舍入后的数量
     """
     from decimal import Decimal, ROUND_HALF_UP
-
     _origin_num = Decimal(number)
-    return _origin_num.quantize(Decimal(rounding), rounding=ROUND_HALF_UP)
+    _ret = _origin_num.quantize(Decimal(rounding), rounding=ROUND_HALF_UP)
+    return str(_ret)

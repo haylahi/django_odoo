@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework import generics, mixins
 
 from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit
@@ -73,3 +74,10 @@ class UnitListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.List
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+
+def test_function_view(request):
+    one = BaseUnit.objects.filter(id=4)[0]
+    ret = one.convert2standard('2')
+    print(ret)
+    return HttpResponse('200 OK', content_type='text/plain', status=200)

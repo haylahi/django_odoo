@@ -255,24 +255,26 @@ class BaseUnit(models.Model):
     compute_type = models.CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_TYPE, default=DEFAULT_COMPUTE_TYPE)
 
     def __str__(self):
+        if self.code:
+            return '{}({})'.format(self.name, self.code)
         return self.name
 
-    def convert_standard_unit(self, number: str) -> str:
+    def convert2standard(self, number: str) -> str:
         try:
             float(number)
             float(self.rounding)
         except:
             raise ValueError('[OP ERROR] convert str to float error')
+        if self.compute_type == DEFAULT_COMPUTE_TYPE:
+            return compute_float(number, self.rounding)
 
-        if self.unit_type == DEFAULT_COMPUTE_TYPE:
-            _num = float(number)
-        elif self.unit_type == COMPUTE_TYPE_BIGGER:
+        elif self.compute_type == COMPUTE_TYPE_BIGGER:
             _num = float(number) * float(self.factor)
-        elif self.unit_type == COMPUTE_TYPE_SMALLER:
-            _num = float(number) / float(self.rounding)
-        else:
-            raise ValueError('[OP ERROR] Unsupported operation')
-        return compute_float(str(_num), self.rounding)
+            return compute_float(str(_num), self.rounding)
+
+        elif self.compute_type == COMPUTE_TYPE_SMALLER:
+            _num = float(number) / float(self.factor)
+            return compute_float(str(_num), self.rounding)
 
     class Meta:
         ordering = ['-name']
