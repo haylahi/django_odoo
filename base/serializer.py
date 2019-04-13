@@ -5,6 +5,8 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from .models import UserProfile, BaseCountry
+from .utils import STR_DATETIME_FORMAT
+
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -39,6 +41,8 @@ class CountrySerializer(serializers.Serializer):
         required=True, label='国家区号',
         validators=[UniqueValidator(queryset=BaseCountry.objects.all())]
     )
+
+    create_time = serializers.DateTimeField(read_only=True, format=STR_DATETIME_FORMAT)
 
     def update(self, obj, validated_data: dict):
         if validated_data.get('name', None) is not None:

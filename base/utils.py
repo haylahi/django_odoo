@@ -3,6 +3,8 @@
 
 from django.contrib.auth.base_user import BaseUserManager
 
+STR_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 class UserProfileManager(BaseUserManager):
     def create_user(self, email, password=None):
