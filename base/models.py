@@ -192,7 +192,7 @@ class UserProfile(AbstractBaseUser):
         return self.email
 
     class Meta:
-        ordering = '-create_time'
+        ordering = ['-create_time']
         db_table = 'base_user'
 
 
