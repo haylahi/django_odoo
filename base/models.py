@@ -3,7 +3,7 @@ from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
-from .utils import UserProfileManager
+from .utils import UserProfileManager, CustomFileStorage
 
 """
 文件以文件形式保存
@@ -243,7 +243,11 @@ class BaseCountry(models.Model):
     short_name = models.CharField('简称', max_length=255, null=True, blank=True)
     area_code = models.CharField('国家区号', max_length=255, null=True, blank=True, unique=True)
 
-    national_flag = models.ImageField('国旗图标', upload_to='country_image/', default='country_image/national_flag.png')
+    national_flag = models.ImageField(
+        '国旗图标', upload_to='country_image/',
+        default='country_image/national_flag.png',
+        storage=CustomFileStorage()
+    )
     create_time = models.DateTimeField('创建时间', default=datetime.now)
 
     def __str__(self):

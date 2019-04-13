@@ -7,5 +7,5 @@ from .views import UserRegisterView, BaseCountryView
 
 urlpatterns = [
     path('user/', UserRegisterView.as_view()),
-    path('country/', BaseCountryView.as_view())
+    path('country/', BaseCountryView.as_view()),
 ]

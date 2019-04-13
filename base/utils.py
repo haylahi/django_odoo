@@ -1,7 +1,14 @@
 # author: Liberty
 # date: 2019/4/13 14:11
 
+import datetime
+import hashlib
+import os
+import time
+
+from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
+from django.core.files.storage import FileSystemStorage
 
 STR_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -22,3 +29,27 @@ class UserProfileManager(BaseUserManager):
         user.is_admin = True
         user.save(using=self._db)
         return user
+
+
+class CustomFileStorage(FileSystemStorage):
+
+    def __init__(self, location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL, *args, **kwargs):
+        super().__init__(location, base_url, *args, **kwargs)
+
+    def _save(self, name, content):
+        _name = name
+        _content = content
+        suffix = os.path.splitext(_name)[1]
+        dir_name = os.path.dirname(_name)
+        new_file_name = '{}{}{}'.format(generate_unique_code(), generate_datetime(), suffix)
+        _name = os.path.join(dir_name, new_file_name)
+        return super()._save(_name, _content)
+
+
+def generate_unique_code():
+    m = hashlib.md5(str(time.clock()).encode('utf-8'))
+    return m.hexdigest()
+
+
+def generate_datetime():
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
