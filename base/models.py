@@ -268,6 +268,7 @@ class BaseProvince(models.Model):
         return self.name
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_province'
 
 

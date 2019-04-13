@@ -1,7 +1,7 @@
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry
-from .serializer import UserRegisterSerializer, CountrySerializer
+from .models import UserProfile, BaseCountry, BaseProvince
+from .serializer import UserRegisterSerializer, CountrySerializer, ProvinceSerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -15,7 +15,7 @@ class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
         return self.list(request, *args, **kwargs)
 
 
-class BaseCountryView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+class BaseCountryListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
     queryset = BaseCountry.objects.all()
     serializer_class = CountrySerializer
 
@@ -31,6 +31,30 @@ class CountryDetailView(generics.GenericAPIView,
                         mixins.RetrieveModelMixin):
     queryset = BaseCountry.objects.all()
     serializer_class = CountrySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class ProvinceListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = BaseProvince.objects.all()
+    serializer_class = ProvinceSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class ProvinceDetailView(generics.GenericAPIView,
+                         mixins.UpdateModelMixin,
+                         mixins.RetrieveModelMixin):
+    queryset = BaseProvince.objects.all()
+    serializer_class = ProvinceSerializer
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)

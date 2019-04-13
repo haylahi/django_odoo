@@ -3,10 +3,13 @@
 
 from django.urls import path
 
-from .views import UserRegisterView, BaseCountryView, CountryDetailView
+from .views import UserRegisterView, BaseCountryListView, CountryDetailView, \
+    ProvinceListView, ProvinceDetailView
 
 urlpatterns = [
     path('user/', UserRegisterView.as_view()),
-    path('country/', BaseCountryView.as_view()),
+    path('country/', BaseCountryListView.as_view()),
     path('country/<int:pk>/', CountryDetailView.as_view()),
+    path('province/', ProvinceListView.as_view()),
+    path('province/<int:pk>/', ProvinceDetailView.as_view()),
 ]
