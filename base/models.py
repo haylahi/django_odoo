@@ -242,7 +242,8 @@ class BaseCountry(models.Model):
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     short_name = models.CharField('简称', max_length=255, null=True, blank=True)
     area_code = models.CharField('国家区号', max_length=255, null=True, blank=True, unique=True)
-    national_flag = models.CharField('国旗', null=True, blank=True, unique=True, max_length=255)
+
+    national_flag = models.ImageField('国旗图标', upload_to='country_image/', default='country_image/national_flag.png')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
 
     def __str__(self):
