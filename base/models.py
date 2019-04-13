@@ -40,6 +40,15 @@ CHOICES_SEX = [
 
 DEFAULT_SEX = 'NULL'
 
+CHOICES_DEPARTMENT_TYPE = [
+    ('NORMAL', '常规'),
+    ('SPECIAL', '特殊'),
+    ('STORE', '子公司门店'),
+    ('OTHER', '其他'),
+]
+
+DEFAULT_DEPARTMENT_TYPE = 'NORMAL'
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -82,6 +91,9 @@ class Partner(models.Model):
     """合作伙伴 将公司的信息存入base_partner"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
 
+    is_customer = models.BooleanField('是否是客户', default=True)
+    is_supplier = models.BooleanField('是否是供应商', default=True)
+
     name = models.CharField('合作伙伴', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
 
@@ -95,11 +107,20 @@ class Partner(models.Model):
 class Department(models.Model):
     """部门"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    department_type = models.CharField('部门类型', choices=CHOICES_DEPARTMENT_TYPE,
+                                       default=DEFAULT_DEPARTMENT_TYPE, max_length=255)
+
+    parent_department = models.ForeignKey('Department', on_delete=models.SET_NULL,
+                                          null=True, blank=True, verbose_name='上级部门', related_name='child_departments')
+
     name = models.CharField('部门名称', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
+
+    def my_child_departments(self):
+        return self.child_departments.all()
 
     class Meta:
         db_table = 'base_department'
@@ -119,6 +140,13 @@ class Employee(models.Model):
 
     class Meta:
         db_table = 'base_employee'
+
+
+class UserGroup(models.Model):
+    """用户组"""
+
+    class Meta:
+        db_table = 'base_user_group'
 
 
 class UserProfile(AbstractBaseUser):
@@ -199,8 +227,9 @@ class BaseUnit(models.Model):
 class BaseCountry(models.Model):
     name = models.CharField('国家', max_length=255, blank=True, null=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
     area_code = models.CharField('国家区号', max_length=255, null=True, blank=True, unique=True)
-    national_flag = models.CharField('国旗', null=True, blank=True, unique=True)
+    national_flag = models.CharField('国旗', null=True, blank=True, unique=True, max_length=255)
 
     def __str__(self):
         return self.name
