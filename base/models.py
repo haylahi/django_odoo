@@ -1,11 +1,20 @@
 from datetime import datetime
 
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
+from base.utils import UserProfileManager
+
 """
+文件以文件形式保存
+    图片返回 base64
+    其他返回文件流
+
 基础模块
     company
+    partner
+    department
+    employee
 
 
 """
@@ -48,10 +57,22 @@ class Company(models.Model):
     # 默认税 默认货币 所在国家 企业统一社会信用代码 营业执照
 
     uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True, unique=True)
+    legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
+    default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
+    default_currency = models.ForeignKey(
+        'Currency', on_delete=models.SET_NULL,
+        blank=True, null=True, verbose_name='默认货币'
+    )
+    country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='所在国家')
+
     create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}[{}]'.format(self.name, self.code)
+        return '{}({})'.format(self.name, self.code)
+
+    def my_child_companies(self):
+        return self.child_companys.all()
 
     class Meta:
         db_table = 'base_company'
@@ -65,27 +86,39 @@ class Partner(models.Model):
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
 
     def __str__(self):
-        return '{}[{}]'.format(self.name, self.code)
+        return '{}({})'.format(self.name, self.code)
 
     class Meta:
         db_table = 'base_partner'
 
 
-class UserProfileManager(BaseUserManager):
-    def create_user(self, email, password=None):
-        if not email:
-            raise ValueError('Users must have an email address')
-        user = self.model(email=self.normalize_email(email))
-        user.set_password(password)
-        user.save(using=self._db)
-        user.create_user_info()
-        return user
+class Department(models.Model):
+    """部门"""
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    name = models.CharField('部门名称', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
 
-    def create_superuser(self, email, password):
-        user = self.create_user(email, password=password)
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
+    def __str__(self):
+        return '{}({})'.format(self.name, self.code)
+
+    class Meta:
+        db_table = 'base_department'
+
+
+class Employee(models.Model):
+    """员工"""
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属部门')
+    user = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, verbose_name='uid', null=True, blank=True)
+
+    name = models.CharField('部门名称', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    def __str__(self):
+        return '{}({})'.format(self.name, self.code)
+
+    class Meta:
+        db_table = 'base_employee'
 
 
 class UserProfile(AbstractBaseUser):
@@ -103,7 +136,7 @@ class UserProfile(AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     def create_user_info(self):
-        return UserInfo.objects.create(user=self)
+        return UserInfo.objects.create(user=self, create_time=self.create_time)
 
     def has_perm(self, perm, obj=None):
         return True
@@ -134,3 +167,86 @@ class UserInfo(models.Model):
 
     class Meta:
         db_table = 'base_user_info'
+
+
+class BaseTax(models.Model):
+    name = models.CharField('税', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    class Meta:
+        db_table = 'base_tax'
+
+
+class Currency(models.Model):
+    name = models.CharField('货币', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    class Meta:
+        db_table = 'base_currency'
+
+
+class BaseUnit(models.Model):
+    name = models.CharField('货币', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    class Meta:
+        db_table = 'base_unit'
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+class BaseCountry(models.Model):
+    name = models.CharField('国家', max_length=255, blank=True, null=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    area_code = models.CharField('国家区号', max_length=255, null=True, blank=True, unique=True)
+    national_flag = models.CharField('国旗', null=True, blank=True, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'base_country'
+
+
+class BaseProvince(models.Model):
+    country = models.ForeignKey('BaseCountry', on_delete=models.CASCADE, blank=True, null=True, verbose_name='所在国家')
+    name = models.CharField('省', max_length=255, blank=True, null=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'base_province'
+
+
+class BaseCity(models.Model):
+    """
+    电话区号 车牌号
+    """
+    province = models.ForeignKey('BaseProvince', on_delete=models.CASCADE, blank=True, null=True, verbose_name='所在省份')
+    name = models.CharField('城市', max_length=255, blank=True, null=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    area_code = models.CharField('城市区号', max_length=255, null=True, blank=True, unique=True)
+    car_number = models.CharField('车牌号首字母', max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'base_city'
+
+
+class BaseDistrict(models.Model):
+    """区"""
+    city = models.ForeignKey('BaseCity', on_delete=models.CASCADE, blank=True, null=True, verbose_name='所在城市')
+    name = models.CharField('区', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'base_district'
