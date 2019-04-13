@@ -246,7 +246,7 @@ class BaseCountry(models.Model):
     national_flag = models.ImageField(
         '国旗图标', upload_to='country_image/',
         default='country_image/national_flag.png',
-        storage=CustomFileStorage()
+        storage=CustomFileStorage(), null=True, blank=True, unique=True
     )
     create_time = models.DateTimeField('创建时间', default=datetime.now)
 

@@ -24,3 +24,16 @@ class BaseCountryView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.L
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+
+class CountryDetailView(generics.GenericAPIView,
+                        mixins.UpdateModelMixin,
+                        mixins.RetrieveModelMixin):
+    queryset = BaseCountry.objects.all()
+    serializer_class = CountrySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
