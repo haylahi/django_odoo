@@ -49,6 +49,24 @@ CHOICES_DEPARTMENT_TYPE = [
 
 DEFAULT_DEPARTMENT_TYPE = 'NORMAL'
 
+CHOICES_UNIT_TYPE = [
+    ('UNIT', '数量单位'),
+    ('WEIGHT', '质量'),
+    ('TIME', '时间'),
+    ('LENGTH', '长度'),
+    ('OTHER', '其他')
+]
+
+DEFAULT_UNIT_TYPE = 'UNIT'
+
+CHOICES_COMPUTE_TYPE = [
+    ('STD', '标准'),
+    ('RIDE', '大于'),
+    ('DIVIDE', '小于'),
+]
+
+DEFAULT_COMPUTE_TYPE = 'STD'
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -227,10 +245,21 @@ class Currency(models.Model):
 
 
 class BaseUnit(models.Model):
-    name = models.CharField('货币', max_length=255, null=True, blank=True)
+    name = models.CharField('单位', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    unit_type = models.CharField('单位类别', max_length=255, choices=CHOICES_UNIT_TYPE, default=DEFAULT_UNIT_TYPE)
+    factor = models.CharField('比例', max_length=255, default='1')
+    rounding = models.CharField('精度', max_length=255, default='0.00')
+    compute_type = models.CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_TYPE, default=DEFAULT_COMPUTE_TYPE)
+
+    def __str__(self):
+        return self.name
+
+    def compute_standard_unit(self):
+        pass
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_unit'
 
 

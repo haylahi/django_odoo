@@ -1,7 +1,8 @@
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry, BaseProvince
-from .serializer import UserRegisterSerializer, CountrySerializer, ProvinceSerializer
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit
+from .serializer import UserRegisterSerializer, CountrySerializer, \
+    ProvinceSerializer, BaseUnitSerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -61,3 +62,14 @@ class ProvinceDetailView(generics.GenericAPIView,
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+
+
+class UnitListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = BaseUnit.objects.all()
+    serializer_class = BaseUnitSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)

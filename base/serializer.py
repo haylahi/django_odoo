@@ -4,7 +4,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import UserProfile, BaseCountry, BaseProvince
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit
 from .utils import STR_DATETIME_FORMAT
 
 
@@ -54,4 +54,10 @@ class CountrySerializer(serializers.Serializer):
 class ProvinceSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseProvince
+        fields = '__all__'
+
+
+class BaseUnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUnit
         fields = '__all__'
