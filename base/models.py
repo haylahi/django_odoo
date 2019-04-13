@@ -3,7 +3,7 @@ from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
-from .utils import UserProfileManager, CustomFileStorage
+from .utils import UserProfileManager, CustomFileStorage, compute_float
 
 """
 文件以文件形式保存
@@ -66,6 +66,8 @@ CHOICES_COMPUTE_TYPE = [
 ]
 
 DEFAULT_COMPUTE_TYPE = 'STD'
+COMPUTE_TYPE_BIGGER = 'RIDE'
+COMPUTE_TYPE_SMALLER = 'DIVIDE'
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -255,8 +257,22 @@ class BaseUnit(models.Model):
     def __str__(self):
         return self.name
 
-    def compute_standard_unit(self):
-        pass
+    def convert_standard_unit(self, number: str) -> str:
+        try:
+            float(number)
+            float(self.rounding)
+        except:
+            raise ValueError('[OP ERROR] convert str to float error')
+
+        if self.unit_type == DEFAULT_COMPUTE_TYPE:
+            _num = float(number)
+        elif self.unit_type == COMPUTE_TYPE_BIGGER:
+            _num = float(number) * float(self.factor)
+        elif self.unit_type == COMPUTE_TYPE_SMALLER:
+            _num = float(number) / float(self.rounding)
+        else:
+            raise ValueError('[OP ERROR] Unsupported operation')
+        return compute_float(str(_num), self.rounding)
 
     class Meta:
         ordering = ['-name']

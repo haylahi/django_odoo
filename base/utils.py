@@ -53,3 +53,17 @@ def generate_unique_code():
 
 def generate_datetime():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
+
+def compute_float(number: str, rounding: str):
+    """
+    精度计算
+
+    :param number: 要计算的数
+    :param rounding: 精度
+    :return: 舍入后的数量
+    """
+    from decimal import Decimal, ROUND_HALF_UP
+
+    _origin_num = Decimal(number)
+    return _origin_num.quantize(Decimal(rounding), rounding=ROUND_HALF_UP)
