@@ -58,13 +58,11 @@ class Company(models.Model):
     name = models.CharField('公司名称', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     company_type = models.CharField('公司类型', max_length=255, choices=CHOICES_COMPANY_TYPE, default=DEFAULT_COMPANY_TYPE)
-
     parent_company = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name='上级公司', related_name='child_companys'
     )
     # 默认税 默认货币 所在国家 企业统一社会信用代码 营业执照
-
     uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True, unique=True)
     legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
     default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
@@ -73,7 +71,6 @@ class Company(models.Model):
         blank=True, null=True, verbose_name='默认货币'
     )
     country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='所在国家')
-
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -144,6 +141,21 @@ class Employee(models.Model):
 
 class UserGroup(models.Model):
     """用户组"""
+    name = models.CharField('用户组名', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='上级用户组', related_name='child_groups'
+    )
+    users = models.ManyToManyField('UserProfile', blank=True)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    def my_child_groups(self):
+        return self.child_groups.all()
 
     class Meta:
         db_table = 'base_user_group'
@@ -180,6 +192,7 @@ class UserProfile(AbstractBaseUser):
         return self.email
 
     class Meta:
+        ordering = '-create_time'
         db_table = 'base_user'
 
 
