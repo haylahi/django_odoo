@@ -3,7 +3,7 @@ from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
-from base.utils import UserProfileManager
+from .utils import UserProfileManager
 
 """
 文件以文件形式保存

@@ -1,7 +1,7 @@
 from rest_framework import generics, mixins
 
-from base.models import UserProfile
-from base.serializer import UserRegister
+from .models import UserProfile
+from .serializer import UserRegister
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin):
