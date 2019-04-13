@@ -3,8 +3,9 @@
 
 from django.urls import path
 
-from .views import UserRegisterView
+from .views import UserRegisterView, BaseCountryView
 
 urlpatterns = [
-    path('user/register/', UserRegisterView.as_view()),
+    path('user/', UserRegisterView.as_view()),
+    path('country/', BaseCountryView.as_view())
 ]

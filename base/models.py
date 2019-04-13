@@ -243,11 +243,13 @@ class BaseCountry(models.Model):
     short_name = models.CharField('简称', max_length=255, null=True, blank=True)
     area_code = models.CharField('国家区号', max_length=255, null=True, blank=True, unique=True)
     national_flag = models.CharField('国旗', null=True, blank=True, unique=True, max_length=255)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_country'
 
 
