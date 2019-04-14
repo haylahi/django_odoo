@@ -4,7 +4,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, Partner
 from .utils import STR_DATETIME_FORMAT
 
 
@@ -17,7 +17,7 @@ class UserRegisterSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         """更新"""
-        raise SystemError('unsupported operation')
+        raise SystemError('[ERROR] unsupported operation')
 
     def create(self, validated_data: dict):
         return UserProfile.objects.create_user(**validated_data)
@@ -46,7 +46,7 @@ class CountrySerializer(serializers.Serializer):
     def create(self, validated_data):
         # 验证 必填字段
         if validated_data.get('name', None) is None:
-            raise ValueError('name is required')
+            raise ValueError('[ERROR] name is required')
 
         return BaseCountry.objects.create(**validated_data)
 
@@ -61,3 +61,14 @@ class BaseUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseUnit
         fields = '__all__'
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = '__all__'
+
+    def create(self, validated_data):
+        ret = super().create(validated_data)
+        Partner.objects.create(company=ret)
+        return ret

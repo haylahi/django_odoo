@@ -101,6 +101,7 @@ class Company(models.Model):
         return self.child_companys.all()
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_company'
 
 
@@ -264,7 +265,7 @@ class BaseUnit(models.Model):
             float(number)
             float(self.rounding)
         except:
-            raise ValueError('[OP ERROR] convert str to float error')
+            raise ValueError('[ERROR] convert str to float error')
         if self.compute_type == DEFAULT_COMPUTE_TYPE:
             return compute_float(number, self.rounding)
 
