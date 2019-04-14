@@ -12,6 +12,17 @@ from django.core.files.storage import FileSystemStorage
 
 STR_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+CHOICES_STATE = [
+    ('draft', '草稿'),
+    ('wait', '等待'),
+    ('ready', '就绪'),
+    ('pending', '待审核'),
+    ('done', '完成'),
+    ('cancel', '取消'),
+]
+
+DEFAULT_STATE = 'draft'
+
 
 class UserProfileManager(BaseUserManager):
     def create_user(self, email, password=None, company=None):
