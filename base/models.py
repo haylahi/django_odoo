@@ -172,22 +172,55 @@ class Department(models.Model):
     def my_child_departments(self):
         return self.child_departments.all()
 
+    def department_manager(self):
+        employees = self.employees.all().filter(is_active=True, is_department_manager=True)
+        if employees and len(employees) == 1:
+            return employees[0]
+        else:
+            return None
+
     class Meta:
         db_table = 'base_department'
+
+
+class JobClassification(models.Model):
+    name = models.CharField('职位名称', max_length=255)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
+    requirement = models.CharField('技能要求', max_length=255, null=True, blank=True)
+
+    pub_date = models.DateField('发布日期', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'base_job'
 
 
 class Employee(models.Model):
     """员工"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属部门')
+    department = models.ForeignKey(
+        'Department', on_delete=models.CASCADE,
+        null=True, blank=True, verbose_name='所属部门', related_name='employees'
+    )
     user = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, verbose_name='uid', null=True, blank=True)
+    job = models.ForeignKey('JobClassification', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='职位')
     is_department_manager = models.BooleanField(default=False, verbose_name='部门经理')
 
     name = models.CharField('部门名称', max_length=255, null=True, blank=True)
     code = models.CharField('工号', max_length=255, null=True, blank=True, unique=True)
 
+    work_address = models.CharField('工作地址', max_length=255, null=True, blank=True)
+    work_email = models.CharField('工作邮箱', max_length=255, null=True, blank=True)
+    work_contact = models.CharField('工作联系方式', max_length=255, null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
+
+    def my_department_manager(self):
+        return self.department.department_manager()
 
     class Meta:
         db_table = 'base_employee'
