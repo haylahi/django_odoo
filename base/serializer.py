@@ -70,5 +70,11 @@ class CompanySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ret = super().create(validated_data)
-        Partner.objects.create(company=ret)
+        Partner.objects.create(company=ret, name=ret.name, code=ret.code)
         return ret
+
+
+class PartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Partner
+        fields = '__all__'

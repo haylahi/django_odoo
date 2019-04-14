@@ -15,22 +15,11 @@ from .utils import UserProfileManager, CustomFileStorage, compute_float
     partner
     department
     employee
+    
+    银行账号 支付宝 现金 银行卡 微信
 
 
 """
-
-CHOICES_COMPANY_TYPE = [
-    ('PERSONAL', '个人独资企业'),
-    ('PARTNER', '合伙企业'),
-    ('LLC', '有限责任公司'),
-    ('SC', '股份有限公司'),
-    ('CROP', '集团公司'),
-    ('ORG', '组织'),
-    ('UNIT', '单位'),
-    ('OTHER', '其他')
-]
-
-DEFAULT_COMPANY_TYPE = 'LLC'
 
 CHOICES_SEX = [
     ('MALE', '男'),
@@ -77,20 +66,21 @@ class Company(models.Model):
     """公司"""
     name = models.CharField('公司名称', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
-    company_type = models.CharField('公司类型', max_length=255, choices=CHOICES_COMPANY_TYPE, default=DEFAULT_COMPANY_TYPE)
     parent_company = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name='上级公司', related_name='child_companys'
     )
-    # 默认税 默认货币 所在国家 企业统一社会信用代码 营业执照
-    uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True, unique=True)
-    legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
+
     default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
     default_currency = models.ForeignKey(
         'Currency', on_delete=models.SET_NULL,
         blank=True, null=True, verbose_name='默认货币'
     )
-    country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='所在国家')
+
+    child_dummy_balance = models.CharField('返点资金余额', max_length=255, default='0')
+    child_cash_balance = models.CharField('实际资金余额', max_length=255, default='0')
+    dummy_discount = models.CharField('默认返点比例(%)', max_length=255, default='40')
+
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -105,15 +95,46 @@ class Company(models.Model):
         db_table = 'base_company'
 
 
+class PartnerTag(models.Model):
+    name = models.CharField('名称', max_length=255, unique=True)
+    color = models.CharField('颜色', max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'base_partner_tag'
+
+
 class Partner(models.Model):
-    """合作伙伴 将公司的信息存入base_partner"""
+    """合作伙伴 将公司的信息存入base_partner 可以是个人或者公司"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    name = models.CharField('合作伙伴', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
 
     is_customer = models.BooleanField('是否是客户', default=True)
     is_supplier = models.BooleanField('是否是供应商', default=True)
 
-    name = models.CharField('合作伙伴', max_length=255, null=True, blank=True)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    partner_tags = models.ManyToManyField('PartnerTag', blank=True, verbose_name='标签')
+
+    # 详细信息
+    uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True, unique=True)
+    legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
+
+    logo = models.ImageField(
+        '公司Logo', upload_to='company_logo/',
+        storage=CustomFileStorage(), null=True, blank=True, unique=True
+    )
+    web_site = models.URLField('合作伙伴网址', max_length=255, null=True, blank=True)
+    contact_info = models.CharField('联系方式', max_length=255, null=True, blank=True)
+    email = models.EmailField('合作伙伴邮箱', max_length=255, null=True, blank=True)
+
+    # 地址信息
+    country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='所在国家')
+    province = models.ForeignKey('BaseProvince', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='省份')
+    city = models.ForeignKey('BaseCity', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='城市')
+    address = models.CharField('详细地址', max_length=255, null=True, blank=True)
+
+    # TODO 仓库位置 指定一个虚拟虚拟位置 银行账户 客户类型
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)

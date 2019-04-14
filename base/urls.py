@@ -13,6 +13,6 @@ urlpatterns = [
     path('country/<int:pk>/', CountryDetailView.as_view()),
     path('province/', ProvinceListView.as_view()),
     path('province/<int:pk>/', ProvinceDetailView.as_view()),
-    path('baseunit/', UnitListView.as_view()),
+    path('unit/', UnitListView.as_view()),
     path('company/', CompanyListView.as_view())
 ]
