@@ -68,4 +68,15 @@ def compute_float(number: str, rounding: str):
     _ret = _origin_num.quantize(Decimal(rounding), rounding=ROUND_HALF_UP)
     return str(_ret)
 
+
 # ---------------------------------------------------------------------------------------------------------------------
+
+
+def get_model(app: str, model: str):
+    from django.apps import apps
+    return apps.get_model(app, model)
+
+
+def check_base_unique_code(model_name: str, code: str):
+    obj = get_model('base', model_name)
+    return not obj.objects.filter(is_active=True, code=code).exists()

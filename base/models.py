@@ -121,6 +121,8 @@ class Partner(models.Model):
     name = models.CharField('合作伙伴', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
     desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+
     is_active = models.BooleanField(default=True)
 
     is_customer = models.BooleanField('是否是客户', default=True)
@@ -209,9 +211,11 @@ class Employee(models.Model):
     job = models.ForeignKey('JobClassification', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='职位')
     is_department_manager = models.BooleanField(default=False, verbose_name='部门经理')
 
+    # user info real_name
     name = models.CharField('员工名称', max_length=255)
     code = models.CharField('工号', max_length=255, null=True, blank=True)
 
+    induction_date = models.DateField('入职日期', null=True, blank=True)
     work_address = models.CharField('工作地址', max_length=255, null=True, blank=True)
     work_email = models.CharField('工作邮箱', max_length=255, null=True, blank=True)
     work_contact = models.CharField('工作联系方式', max_length=255, null=True, blank=True)

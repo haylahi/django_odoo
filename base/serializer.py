@@ -6,10 +6,10 @@ from rest_framework.validators import UniqueValidator
 
 from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, \
     Company, Partner, BaseTax, Currency, CurrencyRate
-from .utils import STR_DATETIME_FORMAT
 
 
 class UserRegisterSerializer(serializers.Serializer):
+    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.filter(is_active=True), many=False)
     email = serializers.EmailField(
         required=True, label='邮箱',
         validators=[UniqueValidator(queryset=UserProfile.objects.filter(is_active=True))]
@@ -24,31 +24,10 @@ class UserRegisterSerializer(serializers.Serializer):
         return UserProfile.objects.create_user(**validated_data)
 
 
-class CountrySerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True, label='id')
-    name = serializers.CharField(label='国家', validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    code = serializers.CharField(label='编码', validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    short_name = serializers.CharField(label='简称', validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    area_code = serializers.CharField(label='国家区号', validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    national_flag = serializers.ImageField(use_url=True, required=False)
-    create_time = serializers.DateTimeField(read_only=True, format=STR_DATETIME_FORMAT)
-
-    def update(self, obj: BaseCountry, validated_data: dict):
-        if validated_data.get('name') != obj.name:
-            raise ValueError("can't modify the country name")
-        obj.code = validated_data.get('code', obj.code)
-        obj.short_name = validated_data.get('short_name', obj.short_name)
-        obj.area_code = validated_data.get('area_code', obj.area_code)
-        obj.national_flag = validated_data.get('national_flag', obj.national_flag)
-        obj.save()
-        return obj
-
-    def create(self, validated_data):
-        # 验证 必填字段
-        if validated_data.get('name', None) is None:
-            raise ValueError('[ERROR] name is required')
-
-        return BaseCountry.objects.create(**validated_data)
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseCountry
+        fields = '__all__'
 
 
 class ProvinceSerializer(serializers.ModelSerializer):
@@ -71,7 +50,7 @@ class CompanySerializer(serializers.ModelSerializer):
     # 创建公司的同时创建partner
     def create(self, validated_data):
         ret = super().create(validated_data)
-        Partner.objects.create(company=ret, name=ret.name, code=ret.code)
+        Partner.objects.create(company=ret, name=ret.name, code=ret.code, create_time=ret.create_time)
         return ret
 
 
