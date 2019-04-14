@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     # myapp
     'rest_framework',
     'base',
+    'stock',
 ]
 
 MIDDLEWARE = [

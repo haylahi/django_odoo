@@ -67,3 +67,5 @@ def compute_float(number: str, rounding: str):
     _origin_num = Decimal(number)
     _ret = _origin_num.quantize(Decimal(rounding), rounding=ROUND_HALF_UP)
     return str(_ret)
+
+# ---------------------------------------------------------------------------------------------------------------------
