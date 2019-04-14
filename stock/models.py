@@ -19,7 +19,7 @@ DEFAULT_LOCATION_TYPE = 'INTERNAL'
 
 
 class StockWarehouse(models.Model):
-    name = models.CharField('仓库名称', max_length=255, null=True, blank=True)
+    name = models.CharField('仓库名称', max_length=255, default='')
     code = models.CharField('唯一编码', max_length=255, unique=True)
     short_name = models.CharField('简称', max_length=255, null=True, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
@@ -38,7 +38,7 @@ class StockWarehouse(models.Model):
 
 class StockLocation(models.Model):
     warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
-    name = models.CharField('仓库名称', max_length=255, null=True, blank=True)
+    name = models.CharField('仓库名称', max_length=255, default='')
     code = models.CharField('唯一编码', max_length=255, unique=True)
     location_type = models.CharField('位置类型', max_length=255, choices=CHOICES_LOCATION_TYPE, default=DEFAULT_LOCATION_TYPE)
     is_return_location = models.BooleanField('是否为退货位置', default=False)
@@ -59,3 +59,42 @@ class StockLocation(models.Model):
     class Meta:
         ordering = ['-name']
         db_table = 'stock_location'
+
+
+class StockPickingType(models.Model):
+    name = models.CharField('作业类型', max_length=255)
+    code = models.CharField('唯一编码', max_length=255, unique=True)
+    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
+    address = models.CharField('仓库位置地址', max_length=255, null=True, blank=True)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
+
+    class Meta:
+        db_table = 'stock_picking_type'
+
+
+class StockPicking(models.Model):
+    class Meta:
+        db_table = 'stock_picking'
+
+
+class StockMove(models.Model):
+    class Meta:
+        db_table = 'stock_move'
+
+
+class StockMoveLine(models.Model):
+    class Meta:
+        db_table = 'stock_move_line'
+
+
+class StockProductionLot(models.Model):
+    class Meta:
+        db_table = 'stock_production_lot'
+
+
+class StockQuantity(models.Model):
+    class Meta:
+        db_table = 'stock_quant'

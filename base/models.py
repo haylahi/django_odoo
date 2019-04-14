@@ -458,3 +458,34 @@ class BaseCity(models.Model):
     class Meta:
         ordering = ['-name']
         db_table = 'base_city'
+
+
+class BaseSequence(models.Model):
+    """
+    序列
+
+    TODO 字符串格式化 正则匹配 替换 getattr setattr 判断下一个号码是否达到了padding
+    """
+    name = models.CharField('名称', max_length=255)
+    code = models.CharField('命名代号(适用模型)', max_length=255, unique=True)
+    prefix = models.CharField('前缀', max_length=255)
+    suffix = models.CharField('后缀', null=True, blank=True, max_length=255)
+    padding = models.PositiveIntegerField('填充长度', default=4)
+    increment = models.PositiveIntegerField('步长', default=1)
+    next_number = models.PositiveIntegerField('下一个号码', default=1)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'base_sequence'
+
+    def generate_next_code(self):
+        _cur_number = self.next_number
+        _increment = self.increment
+
+        _ret = '{prefix}{num:0>{padding}d}'.format(prefix=self.prefix, num=_cur_number, padding=self.padding)
+        if self.suffix:
+            _ret = '{prefix}{num:0>{padding}d}{suffix}'.format(prefix=self.prefix, num=_cur_number, padding=self.padding, suffix=self.suffix)
+        _cur_number = _cur_number + _increment
+        self.next_number = _cur_number
+        self.save()
+        return _ret

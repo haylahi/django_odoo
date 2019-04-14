@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, \
-    Company, Partner, BaseTax, Currency, CurrencyRate, BaseCity
+    Company, Partner, BaseTax, Currency, CurrencyRate, BaseCity, BaseSequence
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -81,4 +81,10 @@ class CurrencySerializer(serializers.ModelSerializer):
 class CurrencyRateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CurrencyRate
+        fields = '__all__'
+
+
+class BaseSequenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseSequence
         fields = '__all__'

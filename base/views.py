@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate, Partner, BaseCity
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate, Partner, BaseCity, BaseSequence
 from .serializer import UserRegisterSerializer, CountrySerializer, \
     ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, \
-    CurrencySerializer, CurrencyRateSerializer, PartnerSerializer, CitySerializer
+    CurrencySerializer, CurrencyRateSerializer, PartnerSerializer, CitySerializer, BaseSequenceSerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -141,7 +141,19 @@ class CurrencyRateListView(generics.GenericAPIView, mixins.CreateModelMixin, mix
         return self.create(request, *args, **kwargs)
 
 
+class BaseSequenceListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = BaseSequence.objects.filter(is_active=True)
+    serializer_class = BaseSequenceSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
-    return HttpResponse('200 OK', content_type='text/plain', status=200)
+    ret = BaseSequence.objects.get(pk=1)
+    return HttpResponse('200 OK {}', content_type='text/plain', status=200)
