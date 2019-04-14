@@ -450,6 +450,7 @@ class BaseCity(models.Model):
     name = models.CharField('城市', max_length=255)
     area_code = models.CharField('城市区号', max_length=255)
     car_number = models.CharField('车牌号首字母', max_length=255, null=True, blank=True)
+    is_provincial_capital = models.BooleanField('省会城市', default=False)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

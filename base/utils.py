@@ -14,18 +14,18 @@ STR_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class UserProfileManager(BaseUserManager):
-    def create_user(self, email, password=None):
+    def create_user(self, email, password=None, company=None):
         if not email:
             raise ValueError('请输入正确的邮箱。。。')
-        user = self.model(email=self.normalize_email(email))
+        user = self.model(email=self.normalize_email(email), company=company)
         user.set_password(password)
         user.save(using=self._db)
         # 创建一个用户信息
         user.create_user_info()
         return user
 
-    def create_superuser(self, email, password):
-        user = self.create_user(email, password=password)
+    def create_superuser(self, email, password, company=None):
+        user = self.create_user(email, password=password, company=company)
         user.is_admin = True
         user.save(using=self._db)
         return user

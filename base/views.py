@@ -1,9 +1,10 @@
 from django.http import HttpResponse
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate, Partner, BaseCity
 from .serializer import UserRegisterSerializer, CountrySerializer, \
-    ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, CurrencySerializer, CurrencyRateSerializer
+    ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, \
+    CurrencySerializer, CurrencyRateSerializer, PartnerSerializer, CitySerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -52,9 +53,7 @@ class ProvinceListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
         return self.create(request, *args, **kwargs)
 
 
-class ProvinceDetailView(generics.GenericAPIView,
-                         mixins.UpdateModelMixin,
-                         mixins.RetrieveModelMixin):
+class ProvinceDetailView(generics.GenericAPIView, mixins.UpdateModelMixin, mixins.RetrieveModelMixin):
     queryset = BaseProvince.objects.filter(is_active=True)
     serializer_class = ProvinceSerializer
 
@@ -63,6 +62,17 @@ class ProvinceDetailView(generics.GenericAPIView,
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+
+
+class CityListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = BaseCity.objects.filter(is_active=True)
+    serializer_class = CitySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
 class UnitListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -79,6 +89,17 @@ class UnitListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.List
 class CompanyListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
     queryset = Company.objects.filter(is_active=True)
     serializer_class = CompanySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class PartnerListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = Partner.objects.filter(is_active=True)
+    serializer_class = PartnerSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -123,6 +144,4 @@ class CurrencyRateListView(generics.GenericAPIView, mixins.CreateModelMixin, mix
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
-    cur = Currency.objects.get(id=2)
-    print(cur.compute_standard_total('344'))
     return HttpResponse('200 OK', content_type='text/plain', status=200)
