@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.db import models
 
-from base.models import Company
+from base.models import Company, BaseSequence
 
 CHOICES_LOCATION_TYPE = [
     ('VIEW', '视图位置'),
@@ -13,6 +13,14 @@ CHOICES_LOCATION_TYPE = [
 ]
 
 DEFAULT_LOCATION_TYPE = 'INTERNAL'
+
+CHOICES_OP_TYPE = [
+    ('INBOUND', '供应商'),
+    ('OUTBOUND', '客户'),
+    ('INTERNAL', '内部'),
+]
+
+DEFAULT_OP_TYPE = 'INTERNAL'
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -70,8 +78,21 @@ class StockPickingType(models.Model):
     is_active = models.BooleanField(default=True)
 
     warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
+    sequence = models.ForeignKey(BaseSequence, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='序列号')
+    op_type = models.CharField('出入类型', max_length=255, choices=CHOICES_OP_TYPE, default=DEFAULT_OP_TYPE)
+    return_picking_type = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='退回的作业类型')
+
+    show_reserved = models.BooleanField('显示预留', default=False)
+    use_new_lot = models.BooleanField('是否创建新的批次号', default=False)
+    use_already_lot = models.BooleanField('是否使用已有的批次号', default=False)
+    default_source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认来源位置', related_name='source_locations')
+    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认目的位置', related_name='destination_locations')
+
+    def __str__(self):
+        return self.name
 
     class Meta:
+        ordering = ['-name']
         db_table = 'stock_picking_type'
 
 
