@@ -4,7 +4,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, Partner
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, Partner, BaseTax
 from .utils import STR_DATETIME_FORMAT
 
 
@@ -77,4 +77,10 @@ class CompanySerializer(serializers.ModelSerializer):
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner
+        fields = '__all__'
+
+
+class BaseTaxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseTax
         fields = '__all__'

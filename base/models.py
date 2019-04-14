@@ -48,15 +48,31 @@ CHOICES_UNIT_TYPE = [
 
 DEFAULT_UNIT_TYPE = 'UNIT'
 
-CHOICES_COMPUTE_TYPE = [
+CHOICES_UNIT_COMPUTE_TYPE = [
     ('STD', '标准'),
     ('RIDE', '大于'),
     ('DIVIDE', '小于'),
 ]
 
-DEFAULT_COMPUTE_TYPE = 'STD'
-COMPUTE_TYPE_BIGGER = 'RIDE'
-COMPUTE_TYPE_SMALLER = 'DIVIDE'
+DEFAULT_UNIT_COMPUTE_TYPE = 'STD'
+UNIT_COMPUTE_TYPE_BIGGER = 'RIDE'
+UNIT_COMPUTE_TYPE_SMALLER = 'DIVIDE'
+
+CHOICES_TAX_TYPE = [
+    ('PERSONAL_INCOME_TAX', '个人所得税'),
+    ('INCREMENT_TAX', '增值税'),
+    ('OTHER', '其他'),
+]
+
+DEFAULT_TAX_TYPE = 'INCREMENT_TAX'
+
+CHOICES_TAX_COMPUTE_TYPE = [
+    ('GROUP', '税组'),
+    ('FIXED', '固定'),
+    ('PERCENT', '百分比'),
+]
+
+DEFAULT_TAX_COMPUTE_TYPE = 'PERCENT'
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -124,7 +140,7 @@ class Partner(models.Model):
 
     logo = models.ImageField(
         '公司Logo', upload_to='company_logo/',
-        storage=CustomFileStorage(), null=True, blank=True, unique=True
+        storage=CustomFileStorage(), null=True, blank=True
     )
     web_site = models.URLField('合作伙伴网址', max_length=255, null=True, blank=True)
     contact_info = models.CharField('联系方式', max_length=255, null=True, blank=True)
@@ -153,7 +169,7 @@ class Department(models.Model):
     desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
     logo = models.ImageField(
         '部门Logo', upload_to='department_logo/',
-        storage=CustomFileStorage(), null=True, blank=True, unique=True
+        storage=CustomFileStorage(), null=True, blank=True
     )
     is_active = models.BooleanField(default=True)
 
@@ -293,7 +309,7 @@ class UserInfo(models.Model):
     user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='uid')
 
     avatar = models.ImageField('头像', upload_to='user_avatar/', storage=CustomFileStorage(),
-                               blank=True, null=True, unique=True)
+                               blank=True, null=True)
     real_name = models.CharField('姓名', max_length=255, null=True, blank=True)
     nickname = models.CharField('昵称', max_length=255, null=True, blank=True)
     person_phone = models.CharField('个人联系号码', max_length=255, null=True, blank=True)
@@ -317,9 +333,25 @@ class UserInfo(models.Model):
 class BaseTax(models.Model):
     name = models.CharField('税', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+
+    tax_type = models.CharField('税类型', max_length=255, choices=CHOICES_TAX_TYPE, default=DEFAULT_TAX_TYPE)
+    compute_type = models.CharField('计算方法', max_length=255, choices=CHOICES_TAX_COMPUTE_TYPE, default=DEFAULT_TAX_COMPUTE_TYPE)
+    rounding = models.CharField('精度', max_length=255, default='0.00')
+
+    #  代表多个数据 保存时检查 计算方法 和 factor
+    factor = models.CharField('百分比', max_length=255, default='13')
     is_active = models.BooleanField(default=True)
 
+    def compute_untax(self, total: str):
+        if self.compute_type == DEFAULT_TAX_COMPUTE_TYPE:
+            _num = float(total) / (1 + float(self.factor) / 100)
+            return compute_float(str(_num), self.rounding)
+
+    def __str__(self):
+        return self.name
+
     class Meta:
+        ordering = ['-name']
         db_table = 'base_tax'
 
 
@@ -338,7 +370,7 @@ class BaseUnit(models.Model):
     unit_type = models.CharField('单位类别', max_length=255, choices=CHOICES_UNIT_TYPE, default=DEFAULT_UNIT_TYPE)
     factor = models.CharField('比例', max_length=255, default='1')
     rounding = models.CharField('精度', max_length=255, default='0.00')
-    compute_type = models.CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_TYPE, default=DEFAULT_COMPUTE_TYPE)
+    compute_type = models.CharField('计算方式', max_length=255, choices=CHOICES_UNIT_COMPUTE_TYPE, default=DEFAULT_UNIT_COMPUTE_TYPE)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -352,14 +384,14 @@ class BaseUnit(models.Model):
             float(self.rounding)
         except:
             raise ValueError('[ERROR] convert str to float error')
-        if self.compute_type == DEFAULT_COMPUTE_TYPE:
+        if self.compute_type == DEFAULT_UNIT_COMPUTE_TYPE:
             return compute_float(number, self.rounding)
 
-        elif self.compute_type == COMPUTE_TYPE_BIGGER:
+        elif self.compute_type == UNIT_COMPUTE_TYPE_BIGGER:
             _num = float(number) * float(self.factor)
             return compute_float(str(_num), self.rounding)
 
-        elif self.compute_type == COMPUTE_TYPE_SMALLER:
+        elif self.compute_type == UNIT_COMPUTE_TYPE_SMALLER:
             _num = float(number) / float(self.factor)
             return compute_float(str(_num), self.rounding)
 
@@ -380,7 +412,7 @@ class BaseCountry(models.Model):
     national_flag = models.ImageField(
         '国旗图标', upload_to='country_image/',
         default='country_image/national_flag.png',
-        storage=CustomFileStorage(), null=True, blank=True, unique=True
+        storage=CustomFileStorage(), null=True, blank=True
     )
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)

@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax
 from .serializer import UserRegisterSerializer, CountrySerializer, \
-    ProvinceSerializer, BaseUnitSerializer, CompanySerializer
+    ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -87,7 +87,21 @@ class CompanyListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.L
         return self.create(request, *args, **kwargs)
 
 
+class TaxListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = BaseTax.objects.filter(is_active=True)
+    serializer_class = BaseTaxSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
+    tax = BaseTax.objects.get(id=1)
+    ret = tax.compute_untax('5700')
+    print(ret)
     return HttpResponse('200 OK', content_type='text/plain', status=200)
