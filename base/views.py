@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from rest_framework import generics, mixins
 
-from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency
+from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate
 from .serializer import UserRegisterSerializer, CountrySerializer, \
-    ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, CurrencySerializer
+    ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, CurrencySerializer, CurrencyRateSerializer
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -109,7 +109,20 @@ class CurrencyListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
         return self.create(request, *args, **kwargs)
 
 
+class CurrencyRateListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
+    queryset = CurrencyRate.objects.filter(is_active=True)
+    serializer_class = CurrencyRateSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
+    cur = Currency.objects.get(id=2)
+    print(cur.compute_standard_total('344'))
     return HttpResponse('200 OK', content_type='text/plain', status=200)

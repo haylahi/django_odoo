@@ -368,10 +368,13 @@ class CurrencyRate(models.Model):
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return '{} ({})'.format(self.rate, self.create_time)
+
     class Meta:
-        ordering = ['-create_time']
+        get_latest_by = 'create_time'
+        ordering = ['create_time']
         db_table = 'base_currency_rate'
-        get_latest_by = '-create_time'
 
 
 class Currency(models.Model):
@@ -381,13 +384,17 @@ class Currency(models.Model):
     rounding = models.CharField('精度', max_length=255, default='0.00')
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return '{}({})'.format(self.name, self.code)
+
     class Meta:
         ordering = ['-name']
         db_table = 'base_currency'
 
     def compute_standard_total(self, total: str):
-        rate = self.rates.all().last()
-        print(rate)
+        rate = self.rates.all().last().rate
+        _num = float(total) / 100 * float(rate)
+        return compute_float(str(_num), self.rounding)
 
 
 class BaseUnit(models.Model):
