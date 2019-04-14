@@ -90,7 +90,9 @@ class CompanyListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.L
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
-    one = BaseUnit.objects.filter(id=4)[0]
-    ret = one.convert2standard('2')
-    print(ret)
+    user = UserProfile.objects.all()
+
+    for u in user:
+        u.delete()
+
     return HttpResponse('200 OK', content_type='text/plain', status=200)

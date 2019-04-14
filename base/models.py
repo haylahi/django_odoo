@@ -184,6 +184,7 @@ class Department(models.Model):
 
 
 class JobClassification(models.Model):
+    """职位"""
     name = models.CharField('职位名称', max_length=255)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
@@ -191,6 +192,9 @@ class JobClassification(models.Model):
 
     pub_date = models.DateField('发布日期', blank=True, null=True)
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         db_table = 'base_job'
@@ -215,6 +219,8 @@ class Employee(models.Model):
     work_contact = models.CharField('工作联系方式', max_length=255, null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
+
+    # TODO 工作记录 工资记录  职位发展 银行账号表
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
@@ -251,19 +257,17 @@ class UserGroup(models.Model):
 class UserProfile(AbstractBaseUser):
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
 
-    email = models.EmailField(verbose_name='Email', max_length=255, unique=True)
+    email = models.EmailField(verbose_name='登录邮箱', max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-
     create_time = models.DateTimeField('创建时间', default=datetime.now)
 
-    # ----------- function
     objects = UserProfileManager()
 
     USERNAME_FIELD = 'email'
 
     def create_user_info(self):
-        return UserInfo.objects.create(user=self, create_time=self.create_time)
+        return UserInfo.objects.create(user=self)
 
     def has_perm(self, perm, obj=None):
         return True
@@ -286,12 +290,21 @@ class UserProfile(AbstractBaseUser):
 class UserInfo(models.Model):
     user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='uid')
 
+    avatar = models.ImageField('头像', upload_to='user_avatar/', storage=CustomFileStorage(),
+                               blank=True, null=True, unique=True)
     real_name = models.CharField('姓名', max_length=255, null=True, blank=True)
     nickname = models.CharField('昵称', max_length=255, null=True, blank=True)
+    person_phone = models.CharField('个人联系号码', max_length=255, null=True, blank=True)
     sex = models.CharField('性别', max_length=255, choices=CHOICES_SEX, default=DEFAULT_SEX)
+    country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='国籍')
+    id_number = models.CharField('身份证', max_length=255, null=True, blank=True, unique=True)
+    marital_status = models.CharField('婚姻状态', choices=[('no', '未婚'), ('yes', '已婚')], default='no', max_length=255)
+    home_address = models.CharField('家庭住址', max_length=255, null=True, blank=True)
+    birth_day = models.DateField('生日', null=True, blank=True)
+    graduate_school = models.CharField('毕业院校', max_length=255, null=True, blank=True)
 
-    create_time = models.DateTimeField('创建时间', default=datetime.now)
-    is_active = models.BooleanField(default=True)
+    def __str__(self):
+        return self.real_name
 
     class Meta:
         db_table = 'base_user_info'
