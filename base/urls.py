@@ -4,7 +4,7 @@
 from django.urls import path
 
 from .views import UserRegisterView, BaseCountryListView, CountryDetailView, \
-    ProvinceListView, ProvinceDetailView, UnitListView, test_function_view, CompanyListView, TaxListView
+    ProvinceListView, ProvinceDetailView, UnitListView, test_function_view, CompanyListView, TaxListView, CurrencyListView
 
 urlpatterns = [
     path('test/', test_function_view),
@@ -15,5 +15,6 @@ urlpatterns = [
     path('province/<int:pk>/', ProvinceDetailView.as_view()),
     path('unit/', UnitListView.as_view()),
     path('company/', CompanyListView.as_view()),
-    path('tax/', TaxListView.as_view())
+    path('tax/', TaxListView.as_view()),
+    path('currency/', CurrencyListView.as_view())
 ]

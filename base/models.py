@@ -117,6 +117,7 @@ class PartnerTag(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_partner_tag'
 
 
@@ -158,6 +159,7 @@ class Partner(models.Model):
         return '{}({})'.format(self.name, self.code)
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_partner'
 
 
@@ -198,6 +200,7 @@ class Department(models.Model):
             return None
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_department'
 
 
@@ -215,6 +218,7 @@ class JobClassification(models.Model):
         return self.name
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_job'
 
 
@@ -247,6 +251,7 @@ class Employee(models.Model):
         return self.department.department_manager()
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_employee'
 
 
@@ -269,6 +274,7 @@ class UserGroup(models.Model):
         return self.child_groups.all()
 
     class Meta:
+        ordering = ['-name']
         db_table = 'base_user_group'
 
 
@@ -327,6 +333,7 @@ class UserInfo(models.Model):
         return self.real_name
 
     class Meta:
+        ordering = ['-real_name']
         db_table = 'base_user_info'
 
 
@@ -355,13 +362,32 @@ class BaseTax(models.Model):
         db_table = 'base_tax'
 
 
-class Currency(models.Model):
-    name = models.CharField('货币', max_length=255, null=True, blank=True)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+class CurrencyRate(models.Model):
+    currency = models.ForeignKey('Currency', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属货币', related_name='rates')
+    rate = models.CharField('比率', max_length=255, null=True, blank=True)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        ordering = ['-create_time']
+        db_table = 'base_currency_rate'
+        get_latest_by = '-create_time'
+
+
+class Currency(models.Model):
+    name = models.CharField('货币', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    symbol = models.CharField('符号', max_length=255, null=True, blank=True)
+    rounding = models.CharField('精度', max_length=255, default='0.00')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-name']
         db_table = 'base_currency'
+
+    def compute_standard_total(self, total: str):
+        rate = self.rates.all().last()
+        print(rate)
 
 
 class BaseUnit(models.Model):
