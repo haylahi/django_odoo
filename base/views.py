@@ -18,7 +18,7 @@ class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
 
 
 class BaseCountryListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
-    queryset = BaseCountry.objects.all()
+    queryset = BaseCountry.objects.filter(is_active=True)
     serializer_class = CountrySerializer
 
     def get(self, request, *args, **kwargs):
@@ -31,7 +31,7 @@ class BaseCountryListView(generics.GenericAPIView, mixins.CreateModelMixin, mixi
 class CountryDetailView(generics.GenericAPIView,
                         mixins.UpdateModelMixin,
                         mixins.RetrieveModelMixin):
-    queryset = BaseCountry.objects.all()
+    queryset = BaseCountry.objects.filter(is_active=True)
     serializer_class = CountrySerializer
 
     def get(self, request, *args, **kwargs):
@@ -42,7 +42,7 @@ class CountryDetailView(generics.GenericAPIView,
 
 
 class ProvinceListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
-    queryset = BaseProvince.objects.all()
+    queryset = BaseProvince.objects.filter(is_active=True)
     serializer_class = ProvinceSerializer
 
     def get(self, request, *args, **kwargs):
@@ -55,7 +55,7 @@ class ProvinceListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
 class ProvinceDetailView(generics.GenericAPIView,
                          mixins.UpdateModelMixin,
                          mixins.RetrieveModelMixin):
-    queryset = BaseProvince.objects.all()
+    queryset = BaseProvince.objects.filter(is_active=True)
     serializer_class = ProvinceSerializer
 
     def get(self, request, *args, **kwargs):
@@ -66,7 +66,7 @@ class ProvinceDetailView(generics.GenericAPIView,
 
 
 class UnitListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
-    queryset = BaseUnit.objects.all()
+    queryset = BaseUnit.objects.filter(is_active=True)
     serializer_class = BaseUnitSerializer
 
     def get(self, request, *args, **kwargs):
@@ -90,9 +90,4 @@ class CompanyListView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.L
 # ----------------------------------------------------------------------------------------------------------------------
 
 def test_function_view(request):
-    user = UserProfile.objects.all()
-
-    for u in user:
-        u.delete()
-
     return HttpResponse('200 OK', content_type='text/plain', status=200)

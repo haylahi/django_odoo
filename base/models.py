@@ -110,6 +110,7 @@ class Partner(models.Model):
     name = models.CharField('合作伙伴', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     is_customer = models.BooleanField('是否是客户', default=True)
     is_supplier = models.BooleanField('是否是供应商', default=True)
@@ -154,6 +155,7 @@ class Department(models.Model):
         '部门Logo', upload_to='department_logo/',
         storage=CustomFileStorage(), null=True, blank=True, unique=True
     )
+    is_active = models.BooleanField(default=True)
 
     department_type = models.CharField(
         '部门类型', max_length=255,
@@ -303,6 +305,8 @@ class UserInfo(models.Model):
     birth_day = models.DateField('生日', null=True, blank=True)
     graduate_school = models.CharField('毕业院校', max_length=255, null=True, blank=True)
 
+    is_active = models.BooleanField(default=True)
+
     def __str__(self):
         return self.real_name
 
@@ -313,6 +317,7 @@ class UserInfo(models.Model):
 class BaseTax(models.Model):
     name = models.CharField('税', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'base_tax'
@@ -321,6 +326,7 @@ class BaseTax(models.Model):
 class Currency(models.Model):
     name = models.CharField('货币', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'base_currency'
@@ -333,6 +339,7 @@ class BaseUnit(models.Model):
     factor = models.CharField('比例', max_length=255, default='1')
     rounding = models.CharField('精度', max_length=255, default='0.00')
     compute_type = models.CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_TYPE, default=DEFAULT_COMPUTE_TYPE)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         if self.code:
@@ -376,6 +383,7 @@ class BaseCountry(models.Model):
         storage=CustomFileStorage(), null=True, blank=True, unique=True
     )
     create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -390,6 +398,7 @@ class BaseProvince(models.Model):
     name = models.CharField('省', max_length=255, blank=True, null=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     short_name = models.CharField('简称', max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -408,6 +417,7 @@ class BaseCity(models.Model):
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
     area_code = models.CharField('城市区号', max_length=255, null=True, blank=True, unique=True)
     car_number = models.CharField('车牌号首字母', max_length=255, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -421,6 +431,7 @@ class BaseDistrict(models.Model):
     city = models.ForeignKey('BaseCity', on_delete=models.CASCADE, blank=True, null=True, verbose_name='所在城市')
     name = models.CharField('区', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
