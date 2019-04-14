@@ -98,7 +98,7 @@ class Company(models.Model):
         return '{}({})'.format(self.name, self.code)
 
     def my_child_companies(self):
-        return self.child_companys.all()
+        return self.child_companys.all().filter(is_active=True)
 
     class Meta:
         ordering = ['-name']
@@ -172,7 +172,7 @@ class Department(models.Model):
         return '{}({})'.format(self.name, self.code)
 
     def my_child_departments(self):
-        return self.child_departments.all()
+        return self.child_departments.all().filter(is_active=True)
 
     def department_manager(self):
         employees = self.employees.all().filter(is_active=True, is_department_manager=True)
@@ -248,7 +248,7 @@ class UserGroup(models.Model):
         return self.name
 
     def my_child_groups(self):
-        return self.child_groups.all()
+        return self.child_groups.all().filter(is_active=True)
 
     class Meta:
         ordering = ['-name']
@@ -301,7 +301,6 @@ class UserInfo(models.Model):
     home_address = models.CharField('家庭住址', max_length=255, null=True, blank=True)
     birth_day = models.DateField('生日', null=True, blank=True)
     graduate_school = models.CharField('毕业院校', max_length=255, null=True, blank=True)
-
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

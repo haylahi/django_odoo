@@ -47,7 +47,11 @@ class StockLocation(models.Model):
     pos_x = models.CharField('X', max_length=255, null=True, blank=True)
     pos_y = models.CharField('Y', max_length=255, null=True, blank=True)
     pos_z = models.CharField('Z', max_length=255, null=True, blank=True)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
+
+    def get_child_locations(self):
+        return self.childs.all().filter(is_active=True)
 
     def __str__(self):
         return self.name
