@@ -119,6 +119,7 @@ class Partner(models.Model):
     # 详细信息
     uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True, unique=True)
     legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
+    register_date = models.DateField('成立时间', null=True, blank=True)
 
     logo = models.ImageField(
         '公司Logo', upload_to='company_logo/',
@@ -146,14 +147,24 @@ class Partner(models.Model):
 class Department(models.Model):
     """部门"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
-    department_type = models.CharField('部门类型', choices=CHOICES_DEPARTMENT_TYPE,
-                                       default=DEFAULT_DEPARTMENT_TYPE, max_length=255)
-
-    parent_department = models.ForeignKey('Department', on_delete=models.SET_NULL,
-                                          null=True, blank=True, verbose_name='上级部门', related_name='child_departments')
-
     name = models.CharField('部门名称', max_length=255, null=True, blank=True)
     code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
+    logo = models.ImageField(
+        '部门Logo', upload_to='department_logo/',
+        storage=CustomFileStorage(), null=True, blank=True, unique=True
+    )
+
+    department_type = models.CharField(
+        '部门类型', max_length=255,
+        choices=CHOICES_DEPARTMENT_TYPE, default=DEFAULT_DEPARTMENT_TYPE
+    )
+
+    parent_department = models.ForeignKey(
+        'Department', on_delete=models.SET_NULL,
+        null=True, blank=True, verbose_name='上级部门',
+        related_name='child_departments'
+    )
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
@@ -170,9 +181,10 @@ class Employee(models.Model):
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
     department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属部门')
     user = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, verbose_name='uid', null=True, blank=True)
+    is_department_manager = models.BooleanField(default=False, verbose_name='部门经理')
 
     name = models.CharField('部门名称', max_length=255, null=True, blank=True)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True, unique=True)
+    code = models.CharField('工号', max_length=255, null=True, blank=True, unique=True)
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
