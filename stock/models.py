@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.db import models
 
-from base.models import Company, BaseSequence
+from base.models import Company, BaseSequence, Partner
 
 CHOICES_LOCATION_TYPE = [
     ('VIEW', '视图位置'),
@@ -21,6 +21,23 @@ CHOICES_OP_TYPE = [
 ]
 
 DEFAULT_OP_TYPE = 'INTERNAL'
+
+# C子公司  P父级公司  U客户  T F R
+CHOICES_DIFF_TYPE = [
+    ('PFU', '总公司从供应商收货'),  # 采购
+    ('PTC', '总公司对子公司发货'),  # 销售
+    ('PTU', '总公司对客户发货'),  # 销售
+    ('PRU', '总公司对供应商退货'),
+
+    ('CFP', '子公司从总公司收货'),  # 采购 经销商收货单
+    ('CFU', '子公司从供应商收货'),  # 采购
+    ('CTU', '子公司对客户发货'),  # 经销商发货单
+    ('CRU', '子公司对供应商退货'),
+    ('CRP', '子公司对总公司退货'),  # 经销商退货单
+
+    ('URP', '客户对总公司退货'),
+    ('URC', '客户对子公司退货')  # 终端退货单
+]
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -77,16 +94,18 @@ class StockPickingType(models.Model):
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
+    diff_type = models.CharField('区分作业类型', max_length=255, choices=CHOICES_DIFF_TYPE, default='CFP')
+
     warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
     sequence = models.ForeignKey(BaseSequence, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='序列号')
-    op_type = models.CharField('出入类型', max_length=255, choices=CHOICES_OP_TYPE, default=DEFAULT_OP_TYPE)
+    op_type = models.CharField('出入站类型', max_length=255, choices=CHOICES_OP_TYPE, default=DEFAULT_OP_TYPE)
     return_picking_type = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='退回的作业类型')
 
     show_reserved = models.BooleanField('显示预留', default=False)
     use_new_lot = models.BooleanField('是否创建新的批次号', default=False)
     use_already_lot = models.BooleanField('是否使用已有的批次号', default=False)
-    default_source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认来源位置', related_name='source_locations')
-    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认目的位置', related_name='destination_locations')
+    default_source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认来源位置', related_name='default_source_locations')
+    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认目的位置', related_name='default_destination_locations')
 
     def __str__(self):
         return self.name
@@ -97,6 +116,14 @@ class StockPickingType(models.Model):
 
 
 class StockPicking(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    name = models.CharField('库存调拨单号', max_length=255, unique=True, default='stock_picking')
+    origin = models.CharField('源单据号', max_length=255, null=True, blank=True)
+
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='合作伙伴')
+    source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='来源位置', related_name='source_locations')
+    destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='目的位置', related_name='destination_locations')
+
     class Meta:
         db_table = 'stock_picking'
 
