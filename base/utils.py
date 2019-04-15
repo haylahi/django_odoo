@@ -88,6 +88,23 @@ def get_model(app: str, model: str):
     return apps.get_model(app, model)
 
 
-def check_base_unique_code(model_name: str, code: str):
-    obj = get_model('base', model_name)
-    return not obj.objects.filter(is_active=True, code=code).exists()
+def match_parentheses(value: str):
+    _stack = []
+    parentheses = "{}"
+    for i in range(len(value)):
+        ch = value[i]
+        if parentheses.find(ch) == -1:
+            continue
+        if ch == '{':
+            _stack.append(ch)
+            continue
+        if len(_stack) == 0:
+            return False
+        p = _stack.pop()
+        if p == '{' and ch == '}':
+            continue
+        else:
+            return False
+    if len(_stack) > 0:
+        return False
+    return True

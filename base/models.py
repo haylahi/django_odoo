@@ -525,6 +525,7 @@ class BaseSequence(models.Model):
 
     @staticmethod
     def check_format_value(val: str):
+        from .utils import match_parentheses
         _b = match_parentheses(val)
         if _b:
             _to_match = RE_SEQUENCE_MATCHING.findall(val)
@@ -540,25 +541,3 @@ class BaseSequence(models.Model):
                 return tag
         else:
             return _b
-
-
-def match_parentheses(value: str):
-    _stack = []
-    parentheses = "{}"
-    for i in range(len(value)):
-        ch = value[i]
-        if parentheses.find(ch) == -1:
-            continue
-        if ch == '{':
-            _stack.append(ch)
-            continue
-        if len(_stack) == 0:
-            return False
-        p = _stack.pop()
-        if p == '{' and ch == '}':
-            continue
-        else:
-            return False
-    if len(_stack) > 0:
-        return False
-    return True
