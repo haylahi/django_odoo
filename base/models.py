@@ -473,8 +473,6 @@ class BaseCity(models.Model):
 class BaseSequence(models.Model):
     """
     序列
-
-    TODO 字符串格式化 正则匹配 替换 getattr setattr 判断下一个号码是否达到了padding
     """
     name = models.CharField('名称', max_length=255)
     code = models.CharField('命名代号(适用模型)', max_length=255, unique=True)
@@ -518,13 +516,49 @@ class BaseSequence(models.Model):
         _val = val
         _current_time = datetime.now()
         _to_match = RE_SEQUENCE_MATCHING.findall(_val)
-        print(_to_match)
         if len(_to_match) != 0:
             _d = {}
             for m in _to_match:
-                if m in SPECIAL_SEQUENCE_VALUE.keys():
-                    _d[m] = _current_time.strftime(SPECIAL_SEQUENCE_VALUE.get(m))
-                else:
-                    return _val
+                _d[m] = _current_time.strftime(SPECIAL_SEQUENCE_VALUE.get(m))
             return _val.format(**_d)
         return _val
+
+    @staticmethod
+    def check_format_value(val: str):
+        _b = match_parentheses(val)
+        if _b:
+            _to_match = RE_SEQUENCE_MATCHING.findall(val)
+            if len(_to_match) == 0:
+                return True
+            else:
+                tag = True
+                for m in _to_match:
+                    if m == '':
+                        tag = False
+                    if m not in SPECIAL_SEQUENCE_VALUE.keys():
+                        tag = False
+                return tag
+        else:
+            return _b
+
+
+def match_parentheses(value: str):
+    _stack = []
+    parentheses = "{}"
+    for i in range(len(value)):
+        ch = value[i]
+        if parentheses.find(ch) == -1:
+            continue
+        if ch == '{':
+            _stack.append(ch)
+            continue
+        if len(_stack) == 0:
+            return False
+        p = _stack.pop()
+        if p == '{' and ch == '}':
+            continue
+        else:
+            return False
+    if len(_stack) > 0:
+        return False
+    return True

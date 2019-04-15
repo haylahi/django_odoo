@@ -157,4 +157,4 @@ class BaseSequenceListView(generics.GenericAPIView, mixins.CreateModelMixin, mix
 def test_function_view(request):
     ret = BaseSequence.objects.get(pk=1)
     s = ret.generate_next_code()
-    return HttpResponse('200 OK {s}'.format(s=s), content_type='text/plain', status=200)
+    return HttpResponse('<h2>200  OK </h2>\n <h2>{s}</h2>'.format(s=s), content_type='text/html', status=200)
