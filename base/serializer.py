@@ -17,8 +17,7 @@ class UserRegisterSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, label='密码')
 
     def update(self, instance, validated_data):
-        """更新"""
-        raise SystemError('[ERROR] unsupported operation')
+        raise serializers.ValidationError('[ERROR] unsupported operation')
 
     def create(self, validated_data: dict):
         return UserProfile.objects.create_user(**validated_data)
@@ -88,3 +87,19 @@ class BaseSequenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseSequence
         fields = '__all__'
+
+    def create(self, validated_data):
+        prefix = validated_data.get('prefix')
+        suffix = validated_data.get('suffix', None)
+        if suffix is not None:
+            b = BaseSequence.check_format_value(suffix)
+            if b is False:
+                raise serializers.ValidationError('格式化字符错误')
+        ret = BaseSequence.check_format_value(prefix)
+        if ret is False:
+            raise serializers.ValidationError('格式化字符错误')
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # 验证格式化字符串
+        return super().update(instance, validated_data)
