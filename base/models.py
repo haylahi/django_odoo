@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractBaseUser
@@ -73,6 +74,15 @@ CHOICES_TAX_COMPUTE_TYPE = [
 ]
 
 DEFAULT_TAX_COMPUTE_TYPE = 'PERCENT'
+
+RE_SEQUENCE_MATCHING = re.compile(r'{(.*?)}')
+
+SPECIAL_SEQUENCE_VALUE = {
+    'Year': '%Y', 'year': '%y',
+    'month': '%m', 'day': '%d',
+    'Week': '%a', 'weekday': '%w',
+    'h24': '%H', 'min': '%M', 'sec': '%S'
+}
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -479,13 +489,42 @@ class BaseSequence(models.Model):
         db_table = 'base_sequence'
 
     def generate_next_code(self):
+        _prefix = self.prefix
+        _suffix = self.suffix
+        _padding = self.padding
         _cur_number = self.next_number
         _increment = self.increment
-
-        _ret = '{prefix}{num:0>{padding}d}'.format(prefix=self.prefix, num=_cur_number, padding=self.padding)
+        # 计算序列
+        _prefix = self.replace_value(_prefix)
+        if _suffix:
+            _suffix = self.replace_value(_suffix)
+        _grow_padding = False
+        _max_num = int(str(9) * _padding)
+        if _cur_number == _max_num:
+            _grow_padding = True
+        _ret = '{prefix}{num:0>{padding}d}'.format(prefix=_prefix, num=_cur_number, padding=_padding)
         if self.suffix:
-            _ret = '{prefix}{num:0>{padding}d}{suffix}'.format(prefix=self.prefix, num=_cur_number, padding=self.padding, suffix=self.suffix)
+            _ret = '{prefix}{num:0>{padding}d}{suffix}'.format(prefix=_prefix, num=_cur_number, padding=_padding, suffix=_suffix)
         _cur_number = _cur_number + _increment
+        if _grow_padding:
+            _padding = _padding + 1
+            self.padding = _padding
         self.next_number = _cur_number
         self.save()
         return _ret
+
+    @staticmethod
+    def replace_value(val: str):
+        _val = val
+        _current_time = datetime.now()
+        _to_match = RE_SEQUENCE_MATCHING.findall(_val)
+        print(_to_match)
+        if len(_to_match) != 0:
+            _d = {}
+            for m in _to_match:
+                if m in SPECIAL_SEQUENCE_VALUE.keys():
+                    _d[m] = _current_time.strftime(SPECIAL_SEQUENCE_VALUE.get(m))
+                else:
+                    return _val
+            return _val.format(**_d)
+        return _val

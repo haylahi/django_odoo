@@ -5,7 +5,7 @@ from django.db import models
 from base.models import Company, BaseSequence, Partner
 from base.utils import CHOICES_STATE, DEFAULT_STATE
 
-# TODO 物流  物流单号 审核人 审核日期
+# TODO 物流  物流单号 审核人 审核日期 包装区分不同的产品
 
 CHOICES_LOCATION_TYPE = [
     ('VIEW', '视图位置'),
