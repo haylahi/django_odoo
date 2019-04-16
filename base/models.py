@@ -483,7 +483,11 @@ class BaseSequence(models.Model):
     next_number = models.PositiveIntegerField('下一个号码', default=1)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
+        ordering = ['-name']
         db_table = 'base_sequence'
 
     def generate_next_code(self):
@@ -498,7 +502,7 @@ class BaseSequence(models.Model):
             _suffix = self.replace_value(_suffix)
         _grow_padding = False
         _max_num = int(str(9) * _padding)
-        if _cur_number == _max_num:
+        if _cur_number + _increment > _max_num:
             _grow_padding = True
         _ret = '{prefix}{num:0>{padding}d}'.format(prefix=_prefix, num=_cur_number, padding=_padding)
         if self.suffix:
@@ -510,6 +514,11 @@ class BaseSequence(models.Model):
         self.next_number = _cur_number
         self.save()
         return _ret
+
+    @classmethod
+    def generate_next_code_by_name(cls, code: str):
+        o = cls.objects.filter(is_active=True, code=code)[0]
+        return o.generate_next_code()
 
     @staticmethod
     def replace_value(val: str):
