@@ -283,8 +283,8 @@ class UserProfile(AbstractBaseUser):
     def create_user_info(self):
         return UserInfo.objects.create(user=self)
 
-    def get_my_partner_tags(self):
-        return self.my_partner_tags.all()
+    def get_current_partner_tags(self, partner: Partner):
+        return self.my_partner_tags.all().filter(is_active=True, partner=partner)
 
     def has_perm(self, perm, obj=None):
         return True
