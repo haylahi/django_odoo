@@ -66,3 +66,5 @@ class SaleOrderLine(models.Model):
     class Meta:
         ordering = ['-create_time']
         db_table = 'order_sale_line'
+
+

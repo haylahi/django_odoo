@@ -115,16 +115,6 @@ class Company(models.Model):
         db_table = 'base_company'
 
 
-class PartnerTag(models.Model):
-    name = models.CharField('名称', max_length=255)
-    color = models.CharField('颜色', max_length=255, blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        ordering = ['-name']
-        db_table = 'base_partner_tag'
-
-
 class Partner(models.Model):
     """合作伙伴"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
@@ -137,8 +127,6 @@ class Partner(models.Model):
 
     is_customer = models.BooleanField('是否是客户', default=True)
     is_supplier = models.BooleanField('是否是供应商', default=True)
-
-    partner_tags = models.ManyToManyField('PartnerTag', blank=True, verbose_name='标签')
 
     # 详细信息
     uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True)
@@ -265,6 +253,22 @@ class UserGroup(models.Model):
         db_table = 'base_user_group'
 
 
+class PartnerTag(models.Model):
+    name = models.CharField('名称', max_length=255)
+    color = models.CharField('颜色', max_length=255, blank=True, null=True)
+    partner = models.ForeignKey('Partner', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属客户')
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属用户', related_name='my_partner_tags')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'base_partner_tag'
+
+
 class UserProfile(AbstractBaseUser):
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
 
@@ -278,6 +282,9 @@ class UserProfile(AbstractBaseUser):
 
     def create_user_info(self):
         return UserInfo.objects.create(user=self)
+
+    def get_my_partner_tags(self):
+        return self.my_partner_tags.all()
 
     def has_perm(self, perm, obj=None):
         return True
