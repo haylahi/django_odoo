@@ -474,6 +474,7 @@ class BaseSequence(models.Model):
     """
     序列
     """
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属公司')
     name = models.CharField('名称', max_length=255)
     code = models.CharField('命名代号(适用模型)', max_length=255, unique=True)
     prefix = models.CharField('前缀', max_length=255)

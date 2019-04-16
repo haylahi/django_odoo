@@ -133,6 +133,7 @@ class StockPicking(models.Model):
     to_contact = models.CharField('目的位置联系方式', max_length=255, null=True, blank=True)
     return_note = models.CharField('退货原因', max_length=255, null=True, blank=True)
     real_price_total = models.CharField('实际含税金额', max_length=255, null=True, blank=True)
+    # TODO 其他订单ID
     purchase_order_id = models.CharField('采购单ID', max_length=255, null=True, blank=True)
     sale_order_id = models.CharField('销售单ID', max_length=255, null=True, blank=True)
     picking_diff_type = models.CharField('作业类型特殊编码', max_length=255, null=True, blank=True)
