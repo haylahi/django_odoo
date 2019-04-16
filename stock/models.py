@@ -136,6 +136,8 @@ class StockPicking(models.Model):
     # TODO 其他订单ID
     purchase_order_id = models.CharField('采购单ID', max_length=255, null=True, blank=True)
     sale_order_id = models.CharField('销售单ID', max_length=255, null=True, blank=True)
+
+    # 通过 stock picking type 计算
     picking_diff_type = models.CharField('作业类型特殊编码', max_length=255, null=True, blank=True)
 
     partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='合作伙伴')

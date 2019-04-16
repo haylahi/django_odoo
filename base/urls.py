@@ -6,7 +6,7 @@ from django.urls import path
 from .views import UserRegisterView, BaseCountryListView, CountryDetailView, \
     ProvinceListView, ProvinceDetailView, UnitListView, test_function_view, \
     CompanyListView, TaxListView, CurrencyListView, \
-    CurrencyRateListView, PartnerListView, CityListView, BaseSequenceListView
+    CurrencyRateListView, PartnerListView, CityListView, BaseSequenceListView, test_base64
 
 urlpatterns = [
     path('test/', test_function_view),
@@ -23,4 +23,5 @@ urlpatterns = [
     path('currency/', CurrencyListView.as_view()),
     path('currencyrate/', CurrencyRateListView.as_view()),
     path('sequence/', BaseSequenceListView.as_view()),
+    path('testbase64/', test_base64)
 ]

@@ -1,10 +1,12 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 from rest_framework import generics, mixins
 
 from .models import UserProfile, BaseCountry, BaseProvince, BaseUnit, Company, BaseTax, Currency, CurrencyRate, Partner, BaseCity, BaseSequence
 from .serializer import UserRegisterSerializer, CountrySerializer, \
     ProvinceSerializer, BaseUnitSerializer, CompanySerializer, BaseTaxSerializer, \
     CurrencySerializer, CurrencyRateSerializer, PartnerSerializer, CitySerializer, BaseSequenceSerializer
+from .utils import image_to_base64
 
 
 class UserRegisterView(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
@@ -158,3 +160,11 @@ class BaseSequenceListView(generics.GenericAPIView, mixins.CreateModelMixin, mix
 def test_function_view(request):
     ret = BaseSequence.generate_next_code_by_name('test.test01')
     return HttpResponse('<h2>200  OK </h2>\n <h2>{s}</h2>'.format(s=ret), content_type='text/html', status=200)
+
+
+def test_base64(request):
+    b64 = image_to_base64('D:\\Project\\Python\\powerful\\upload\\country_image\\30565a8911a6bb487e3745c0ea3c822420190414202838.jpg')
+    attr = {
+        'imgData': b64
+    }
+    return render(request, 'test_base64.html', attr)

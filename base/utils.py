@@ -108,3 +108,14 @@ def match_parentheses(value: str):
     if len(_stack) > 0:
         return False
     return True
+
+
+def image_to_base64(path: str):
+    import base64
+    _ret = ''
+    with open(path, 'rb') as f:
+        b64 = base64.b64encode(f.read())
+        _ret = b64.decode('utf8')
+    if _ret == '':
+        raise ValueError('[ERROR] data error ...')
+    return _ret
