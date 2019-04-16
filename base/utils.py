@@ -2,11 +2,9 @@
 # date: 2019/4/13 14:11
 
 import datetime
-import hashlib
 import os
 import time
 
-from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.files.storage import FileSystemStorage
 
@@ -43,6 +41,7 @@ class UserProfileManager(BaseUserManager):
 
 
 class CustomFileStorage(FileSystemStorage):
+    from django.conf import settings
 
     def __init__(self, location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL, *args, **kwargs):
         super().__init__(location, base_url, *args, **kwargs)
@@ -58,6 +57,7 @@ class CustomFileStorage(FileSystemStorage):
 
 
 def generate_unique_code():
+    import hashlib
     m = hashlib.md5(str(time.clock()).encode('utf-8'))
     return m.hexdigest()
 

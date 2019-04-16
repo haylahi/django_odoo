@@ -21,7 +21,7 @@ SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'base.UserProfile'
 
@@ -36,6 +36,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'base',
     'stock',
+    'account',
+    'orders',
+    'product',
 ]
 
 MIDDLEWARE = [
