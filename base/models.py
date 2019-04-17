@@ -131,6 +131,13 @@ class Company(models.Model):
     def my_child_companies(self):
         return self.child_companys.all().filter(is_active=True)
 
+    def self_partner(self):
+        p = self.my_partner.all().filter(is_active=True)
+        if p and len(p) == 1:
+            return p
+        else:
+            raise ValueError("ERROR: company's partner error")
+
     class Meta:
         ordering = ['-name']
         db_table = 'base_company'
@@ -154,7 +161,7 @@ class PartnerTag(models.Model):
 
 class Partner(models.Model):
     """合作伙伴"""
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司', related_name='my_partner')
     name = models.CharField('合作伙伴', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
     desc = models.CharField('详细描述', max_length=255, default='')
@@ -309,9 +316,11 @@ class UserProfile(AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     def has_perm(self, perm, obj=None):
+        print(self, perm, obj)
         return True
 
     def has_module_perms(self, app_label):
+        print(self, app_label)
         return True
 
     @property
@@ -462,7 +471,7 @@ class BaseCountry(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['name']
         db_table = 'base_country'
 
 
@@ -495,7 +504,7 @@ class BaseCity(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['-province', '-name']
         db_table = 'base_city'
 
 

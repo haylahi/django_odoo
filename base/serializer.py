@@ -4,22 +4,26 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from base.models import BaseCountry
-from .utils import get_field_str
+from .models import BaseCountry, BaseProvince, BaseCity
+from .utils import get_field_desc
 
 
-def get_base_model(model_name: str):
-    from .utils import get_model
-    return get_model('base', model_name)
-
-
-# -----------------------------------------------------------------------------
+# -----------------------------国家省市--------------------------------------------
 
 
 class CountrySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(label=get_field_str(BaseCountry, 'name'), validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    short_name = serializers.CharField(label=get_field_str(BaseCountry, 'short_name'), validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
-    area_code = serializers.CharField(label=get_field_str(BaseCountry, 'area_code'), validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))])
+    name = serializers.CharField(
+        label=get_field_desc(BaseCountry, 'name'),
+        validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True), message='国家的名称必须唯一')]
+    )
+    short_name = serializers.CharField(
+        label=get_field_desc(BaseCountry, 'short_name'),
+        validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))]
+    )
+    area_code = serializers.CharField(
+        label=get_field_desc(BaseCountry, 'area_code'),
+        validators=[UniqueValidator(queryset=BaseCountry.objects.filter(is_active=True))]
+    )
     is_active = serializers.BooleanField(default=True)
 
     class Meta:
@@ -27,6 +31,64 @@ class CountrySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def update(self, instance: BaseCountry, attr: dict):
+        """只可以修改图标"""
         instance.national_flag = attr.get('national_flag', instance.national_flag)
         instance.save()
         return instance
+
+
+class ProvinceSerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
+
+    class Meta:
+        model = BaseProvince
+        fields = '__all__'
+
+    def create(self, validated_data: dict):
+        country = validated_data.get('country')
+        name = validated_data.get('name')
+        short_name = validated_data.get('short_name')
+        _n = BaseProvince.objects.filter(is_active=True, country=country, name=name).exists()
+        _s = BaseProvince.objects.filter(is_active=True, country=country, short_name=short_name).exists()
+        if _n:
+            raise serializers.ValidationError('ERROR: 在同一个国家下，不能有两个一样的省')
+        if _s:
+            raise serializers.ValidationError('ERROR: 在同一个国家下，省的简称是唯一的')
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError('ERROR：暂不支持的操作...')
+
+
+class CitySerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
+
+    class Meta:
+        model = BaseCity
+        fields = '__all__'
+
+    def create(self, validated_data):
+        province = validated_data.get('province')
+        name = validated_data.get('name')
+        area_code = validated_data.get('area_code')
+        car_number = validated_data.get('car_number')
+        is_provincial_capital = validated_data.get('is_provincial_capital')
+
+        _n = BaseCity.objects.filter(is_active=True, province=province, name=name).exists()
+        _a = BaseCity.objects.filter(is_active=True, area_code=area_code).exists()
+        _c = BaseCity.objects.filter(is_active=True, province=province, car_number=car_number).exists()
+        _i = BaseCity.objects.filter(is_active=True, province=province, is_provincial_capital=True).exists()
+
+        if _n or _a or _c:
+            raise serializers.ValidationError('ERROR: unique error')
+
+        if _i:
+            if is_provincial_capital:
+                raise serializers.ValidationError('ERROR: 一个省只能有一个省会...')
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError('ERROR：暂不支持的操作...')
+
+# -----------------------------------------------------------------------------

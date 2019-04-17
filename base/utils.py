@@ -91,7 +91,7 @@ def get_model(app: str, model: str):
         return None
 
 
-def get_field_str(model_obj, field_name: str):
+def get_field_desc(model_obj, field_name: str):
     from django.core.exceptions import FieldDoesNotExist
     try:
         _field = model_obj._meta.get_field(field_name)

@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from rest_framework import generics
 
-from base.serializer import CountrySerializer
-from .models import BaseCountry
+from base.serializer import CountrySerializer, ProvinceSerializer, CitySerializer
+from .models import BaseCountry, BaseProvince, BaseCity
 
 
 class CountryListCreateView(generics.ListCreateAPIView):
@@ -13,6 +13,16 @@ class CountryListCreateView(generics.ListCreateAPIView):
 class CountryDetailUpdateView(generics.RetrieveUpdateAPIView):
     queryset = BaseCountry.objects.filter(is_active=True)
     serializer_class = CountrySerializer
+
+
+class ProvinceListCreateView(generics.ListCreateAPIView):
+    queryset = BaseProvince.objects.filter(is_active=True)
+    serializer_class = ProvinceSerializer
+
+
+class CityListCreateView(generics.ListCreateAPIView):
+    queryset = BaseCity.objects.filter(is_active=True)
+    serializer_class = CitySerializer
 
 
 # -----------------------------------------------------------------------------
