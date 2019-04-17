@@ -10,6 +10,11 @@ class CountryListCreateView(generics.ListCreateAPIView):
     serializer_class = CountrySerializer
 
 
+class CountryDetailUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = BaseCountry.objects.filter(is_active=True)
+    serializer_class = CountrySerializer
+
+
 # -----------------------------------------------------------------------------
 
 

@@ -26,5 +26,7 @@ class CountrySerializer(serializers.ModelSerializer):
         model = BaseCountry
         fields = '__all__'
 
-    def update(self, instance, validated_data):
-        raise serializers.ValidationError('Unsupported Operation: 你暂时不能更新国家的信息...')
+    def update(self, instance: BaseCountry, attr: dict):
+        instance.national_flag = attr.get('national_flag', instance.national_flag)
+        instance.save()
+        return instance
