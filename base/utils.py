@@ -85,7 +85,19 @@ def compute_float(number: str, rounding: str):
 
 def get_model(app: str, model: str):
     from django.apps import apps
-    return apps.get_model(app, model)
+    try:
+        return apps.get_model(app, model)
+    except LookupError:
+        return None
+
+
+def get_field_str(model_obj, field_name: str):
+    from django.core.exceptions import FieldDoesNotExist
+    try:
+        _field = model_obj._meta.get_field(field_name)
+        return _field.verbose_name
+    except FieldDoesNotExist:
+        return field_name
 
 
 def match_parentheses(value: str) -> bool:

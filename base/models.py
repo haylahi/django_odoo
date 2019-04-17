@@ -455,7 +455,7 @@ class BaseCountry(models.Model):
     name = models.CharField('国家', max_length=255)
     short_name = models.CharField('简称(英文)', max_length=255)
     area_code = models.CharField('国家区号', max_length=255)
-    national_flag = models.ImageField('国旗图标', upload_to='country_image/', storage=CustomFileStorage(), default='default_logo.png')
+    national_flag = models.ImageField('国旗图标', upload_to='country_image/', storage=CustomFileStorage(), default='default_logo.png', blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
