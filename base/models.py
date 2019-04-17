@@ -18,7 +18,9 @@ from .utils import UserProfileManager, CustomFileStorage, compute_float
     employee
     
     银行账号 支付宝 现金 银行卡 微信
-
+    
+    根据self relation fileds 去 操作自己应该关闭的外键
+    
 
 """
 
@@ -84,19 +86,38 @@ SPECIAL_SEQUENCE_VALUE = {
     'h24': '%H', 'min': '%M', 'sec': '%S'
 }
 
+CHOICES_PARTNER_TAG_COLOR = [
+    ('red', '红色'),
+    ('blue', '蓝色'),
+    ('green', '绿色'),
+    ('yellow', '黄色'),
+]
+
+CHOICES_PARTNER_LEVEL = [
+    ('A', 'VIP'),
+    ('B', '高级'),
+    ('C', ''),
+    ('D', ''),
+    ('E', '普通'),
+]
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 class Company(models.Model):
-    """公司"""
+    """公司
+            检查 code是否唯一
+            不能选择自己的公司
+            创建partner
+    """
+
     name = models.CharField('公司名称', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
-    # 不能选择自己
-    parent_company = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='上级公司', related_name='child_companys')
+    parent_company = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级公司', related_name='child_companys')
     default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
     default_currency = models.ForeignKey('Currency', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认货币')
 
@@ -115,34 +136,53 @@ class Company(models.Model):
         db_table = 'base_company'
 
 
+class PartnerTag(models.Model):
+    """检查同一个用户下标签的名字是否相同"""
+    name = models.CharField('名称', max_length=255)
+    color = models.CharField('颜色', max_length=255, choices=CHOICES_PARTNER_TAG_COLOR, default='green')
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='所属用户', related_name='partner_tags')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'base_partner_tag'
+
+
 class Partner(models.Model):
     """合作伙伴"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
     name = models.CharField('合作伙伴', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
-    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
+    desc = models.CharField('详细描述', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
-
     is_active = models.BooleanField(default=True)
 
-    is_customer = models.BooleanField('是否是客户', default=True)
-    is_supplier = models.BooleanField('是否是供应商', default=True)
+    tags = models.ManyToManyField('PartnerTag', blank=True, verbose_name='标签')
+    partner_level = models.CharField('客户等级', max_length=255, )
 
-    # 详细信息
-    uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, null=True, blank=True)
-    legal_person = models.CharField('公司法人', max_length=255, null=True, blank=True)
-    register_date = models.DateField('成立时间', null=True, blank=True)
+    # 根据创建的场景去判断
+    is_customer = models.BooleanField('是否是客户', default=False)
+    is_supplier = models.BooleanField('是否是供应商', default=False)
 
-    logo = models.ImageField('公司Logo', upload_to='company_logo/', storage=CustomFileStorage(), null=True, blank=True)
-    web_site = models.URLField('合作伙伴网址', max_length=255, null=True, blank=True)
-    contact_info = models.CharField('联系方式', max_length=255, null=True, blank=True)
-    email = models.EmailField('合作伙伴邮箱', max_length=255, null=True, blank=True)
+    # 详细信息 检查唯一性
+    uniform_social_credit_code = models.CharField('企业统一社会信用代码(税号)', max_length=255, default='')
+    legal_person = models.CharField('公司法人', max_length=255, default='')
+    register_date = models.DateField('成立时间', default=datetime.now)
+
+    logo = models.ImageField('公司Logo', upload_to='company_logo/', storage=CustomFileStorage(), default='default_logo.png')
+    web_site = models.URLField('合作伙伴网址', max_length=255, default='')
+    contact_info = models.CharField('联系方式', max_length=255, default='')
+    email = models.EmailField('合作伙伴邮箱', max_length=255, default='')
 
     # 地址信息
     country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='所在国家')
     province = models.ForeignKey('BaseProvince', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='省份')
     city = models.ForeignKey('BaseCity', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='城市')
-    address = models.CharField('详细地址', max_length=255, null=True, blank=True)
+    address = models.CharField('详细地址', max_length=255, default='')
 
     # TODO 仓库位置 指定一个虚拟虚拟位置 银行账户 客户类型
 
@@ -156,15 +196,15 @@ class Partner(models.Model):
 
 class Department(models.Model):
     """部门"""
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, verbose_name='所在公司')
     name = models.CharField('部门名称', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
-    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
-    logo = models.ImageField('部门Logo', upload_to='department_logo/', storage=CustomFileStorage(), null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
+    desc = models.CharField('详细描述', max_length=255, default='')
+    logo = models.ImageField('部门Logo', upload_to='department_logo/', storage=CustomFileStorage(), default='default_logo.png')
     is_active = models.BooleanField(default=True)
 
     department_type = models.CharField('部门类型', max_length=255, choices=CHOICES_DEPARTMENT_TYPE, default=DEFAULT_DEPARTMENT_TYPE)
-    parent_department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='上级部门', related_name='child_departments')
+    parent_department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级部门', related_name='child_departments')
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
@@ -187,10 +227,10 @@ class Department(models.Model):
 class JobClassification(models.Model):
     """职位"""
     name = models.CharField('职位名称', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
-    desc = models.CharField('详细描述', max_length=255, null=True, blank=True)
-    requirement = models.CharField('技能要求', max_length=255, null=True, blank=True)
-    pub_date = models.DateField('发布日期', blank=True, null=True)
+    code = models.CharField('唯一编码', max_length=255)
+    desc = models.CharField('详细描述', max_length=255, default='')
+    requirement = models.CharField('技能要求', max_length=255, default='')
+    pub_date = models.DateField('发布日期', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -203,20 +243,20 @@ class JobClassification(models.Model):
 
 class Employee(models.Model):
     """员工"""
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属部门', related_name='employees')
-    user = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, verbose_name='uid', null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, verbose_name='所在公司')
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, verbose_name='所属部门', related_name='employees')
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='uid')
     job = models.ForeignKey('JobClassification', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='职位')
     is_department_manager = models.BooleanField(default=False, verbose_name='部门经理')
 
-    # user info real_name
+    # from user_info real_name
     name = models.CharField('员工名称', max_length=255)
-    code = models.CharField('工号', max_length=255, null=True, blank=True)
+    code = models.CharField('工号', max_length=255)
 
-    induction_date = models.DateField('入职日期', null=True, blank=True)
-    work_address = models.CharField('工作地址', max_length=255, null=True, blank=True)
-    work_email = models.CharField('工作邮箱', max_length=255, null=True, blank=True)
-    work_contact = models.CharField('工作联系方式', max_length=255, null=True, blank=True)
+    induction_date = models.DateField('入职日期', default=datetime.now)
+    work_address = models.CharField('工作地址', max_length=255, default='')
+    work_email = models.CharField('工作邮箱', max_length=255, default='')
+    work_contact = models.CharField('工作联系方式', max_length=255, default='')
 
     is_active = models.BooleanField(default=True)
 
@@ -236,8 +276,8 @@ class Employee(models.Model):
 class UserGroup(models.Model):
     """用户组"""
     name = models.CharField('用户组名', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
-    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='上级用户组', related_name='child_groups')
+    code = models.CharField('唯一编码', max_length=255)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级用户组', related_name='child_groups')
     users = models.ManyToManyField('UserProfile', blank=True)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
@@ -253,23 +293,11 @@ class UserGroup(models.Model):
         db_table = 'base_user_group'
 
 
-class PartnerTag(models.Model):
-    name = models.CharField('名称', max_length=255)
-    color = models.CharField('颜色', max_length=255, blank=True, null=True)
-    partner = models.ForeignKey('Partner', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属客户')
-    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属用户', related_name='my_partner_tags')
-    create_time = models.DateTimeField('创建时间', default=datetime.now)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['-name']
-        db_table = 'base_partner_tag'
-
-
 class UserProfile(AbstractBaseUser):
+    """
+    创建superuser 不验证 其他的验证公司
+    创建用户
+    """
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
 
     email = models.EmailField(verbose_name='登录邮箱', max_length=255, unique=True)
@@ -279,12 +307,6 @@ class UserProfile(AbstractBaseUser):
 
     objects = UserProfileManager()
     USERNAME_FIELD = 'email'
-
-    def create_user_info(self):
-        return UserInfo.objects.create(user=self)
-
-    def get_current_partner_tags(self, partner: Partner):
-        return self.my_partner_tags.all().filter(is_active=True, partner=partner)
 
     def has_perm(self, perm, obj=None):
         return True
@@ -307,17 +329,17 @@ class UserProfile(AbstractBaseUser):
 class UserInfo(models.Model):
     user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='uid')
 
-    avatar = models.ImageField('头像', upload_to='user_avatar/', storage=CustomFileStorage(), blank=True, null=True)
-    real_name = models.CharField('姓名', max_length=255, null=True, blank=True)
-    nickname = models.CharField('昵称', max_length=255, null=True, blank=True)
-    person_phone = models.CharField('个人联系号码', max_length=255, null=True, blank=True)
+    avatar = models.ImageField('头像', upload_to='user_avatar/', storage=CustomFileStorage(), default='default_logo.png')
+    real_name = models.CharField('姓名', max_length=255, default='')
+    nickname = models.CharField('昵称', max_length=255, default='')
+    person_phone = models.CharField('个人联系号码', max_length=255, default='')
     sex = models.CharField('性别', max_length=255, choices=CHOICES_SEX, default=DEFAULT_SEX)
     country = models.ForeignKey('BaseCountry', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='国籍')
-    id_number = models.CharField('身份证', max_length=255, null=True, blank=True)
-    marital_status = models.CharField('婚姻状态', choices=[('no', '未婚'), ('yes', '已婚')], default='no', max_length=255)
-    home_address = models.CharField('家庭住址', max_length=255, null=True, blank=True)
-    birth_day = models.DateField('生日', null=True, blank=True)
-    graduate_school = models.CharField('毕业院校', max_length=255, null=True, blank=True)
+    id_number = models.CharField('身份证', max_length=255, default='')
+    marital_status = models.CharField('婚姻状态', choices=[('NO', '未婚'), ('YES', '已婚')], default='NO', max_length=255)
+    home_address = models.CharField('家庭住址', max_length=255, default='')
+    birth_day = models.DateField('生日', default=datetime.now)
+    graduate_school = models.CharField('毕业院校', max_length=255, default='')
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -330,7 +352,7 @@ class UserInfo(models.Model):
 
 class BaseTax(models.Model):
     name = models.CharField('税', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
 
     tax_type = models.CharField('税类型', max_length=255, choices=CHOICES_TAX_TYPE, default=DEFAULT_TAX_TYPE)
     compute_type = models.CharField('计算方法', max_length=255, choices=CHOICES_TAX_COMPUTE_TYPE, default=DEFAULT_TAX_COMPUTE_TYPE)
@@ -357,7 +379,7 @@ class BaseTax(models.Model):
 
 class CurrencyRate(models.Model):
     currency = models.ForeignKey('Currency', on_delete=models.CASCADE, verbose_name='所属货币', related_name='rates')
-    rate = models.CharField('比率', max_length=255, null=True, blank=True)
+    rate = models.CharField('比率', max_length=255, default='100')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -372,8 +394,8 @@ class CurrencyRate(models.Model):
 
 class Currency(models.Model):
     name = models.CharField('货币', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
-    symbol = models.CharField('符号', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
+    symbol = models.CharField('符号', max_length=255)
     rounding = models.CharField('精度', max_length=255, default='0.00')
     is_active = models.BooleanField(default=True)
 
@@ -392,7 +414,7 @@ class Currency(models.Model):
 
 class BaseUnit(models.Model):
     name = models.CharField('单位', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
     unit_type = models.CharField('单位类别', max_length=255, choices=CHOICES_UNIT_TYPE, default=DEFAULT_UNIT_TYPE)
     factor = models.CharField('比例', max_length=255, default='1')
     rounding = models.CharField('精度', max_length=255, default='0.00')
@@ -431,9 +453,9 @@ class BaseUnit(models.Model):
 
 class BaseCountry(models.Model):
     name = models.CharField('国家', max_length=255)
-    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
-    area_code = models.CharField('国家区号', max_length=255, null=True, blank=True)
-    national_flag = models.ImageField('国旗图标', upload_to='country_image/', storage=CustomFileStorage(), null=True, blank=True)
+    short_name = models.CharField('简称(英文)', max_length=255)
+    area_code = models.CharField('国家区号', max_length=255)
+    national_flag = models.ImageField('国旗图标', upload_to='country_image/', storage=CustomFileStorage(), default='default_logo.png')
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -447,7 +469,7 @@ class BaseCountry(models.Model):
 class BaseProvince(models.Model):
     country = models.ForeignKey('BaseCountry', on_delete=models.CASCADE, verbose_name='所在国家')
     name = models.CharField('省', max_length=255)
-    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
+    short_name = models.CharField('简称', max_length=255)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -465,7 +487,7 @@ class BaseCity(models.Model):
     province = models.ForeignKey('BaseProvince', on_delete=models.CASCADE, verbose_name='所在省份')
     name = models.CharField('城市', max_length=255)
     area_code = models.CharField('城市区号', max_length=255)
-    car_number = models.CharField('车牌号首字母', max_length=255, null=True, blank=True)
+    car_number = models.CharField('车牌号首字母', max_length=255)
     is_provincial_capital = models.BooleanField('省会城市', default=False)
     is_active = models.BooleanField(default=True)
 
@@ -481,11 +503,11 @@ class BaseSequence(models.Model):
     """
     序列
     """
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属公司')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所属公司')
     name = models.CharField('名称', max_length=255)
     code = models.CharField('命名代号(适用模型)', max_length=255, unique=True)
     prefix = models.CharField('前缀', max_length=255)
-    suffix = models.CharField('后缀', null=True, blank=True, max_length=255)
+    suffix = models.CharField('后缀', max_length=255, default='')
     padding = models.PositiveIntegerField('填充长度', default=4)
     increment = models.PositiveIntegerField('步长', default=1)
     next_number = models.PositiveIntegerField('下一个号码', default=1)

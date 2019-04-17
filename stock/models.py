@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db import models
 
@@ -44,12 +44,19 @@ CHOICES_DIFF_TYPE = [
 # ---------------------------------------------------------------------------------------------------------------------
 
 
+def toady_add_seven():
+    """2018 12 30 + 7 ?"""
+    _now = datetime.today()
+    _after = _now + timedelta(days=7)
+    return _after
+
+
 class StockWarehouse(models.Model):
-    name = models.CharField('仓库名称', max_length=255, default='')
-    code = models.CharField('唯一编码', max_length=255, unique=True)
-    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
-    address = models.CharField('仓库地址', max_length=255, null=True, blank=True)
+    name = models.CharField('仓库名称', max_length=255)
+    code = models.CharField('唯一编码', max_length=255)
+    short_name = models.CharField('简称', max_length=255, default='')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所在公司')
+    address = models.CharField('仓库地址', max_length=255)
 
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
@@ -63,16 +70,16 @@ class StockWarehouse(models.Model):
 
 
 class StockLocation(models.Model):
-    warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
-    name = models.CharField('仓库名称', max_length=255, default='')
-    code = models.CharField('唯一编码', max_length=255, unique=True)
+    warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, verbose_name='所属仓库')
+    name = models.CharField('仓库名称', max_length=255)
+    code = models.CharField('唯一编码', max_length=255)
     location_type = models.CharField('位置类型', max_length=255, choices=CHOICES_LOCATION_TYPE, default=DEFAULT_LOCATION_TYPE)
     is_return_location = models.BooleanField('是否为退货位置', default=False)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级位置', related_name='childs')
 
-    pos_x = models.CharField('X', max_length=255, null=True, blank=True)
-    pos_y = models.CharField('Y', max_length=255, null=True, blank=True)
-    pos_z = models.CharField('Z', max_length=255, null=True, blank=True)
+    pos_x = models.CharField('X', max_length=255, default='')
+    pos_y = models.CharField('Y', max_length=255, default='')
+    pos_z = models.CharField('Z', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -90,24 +97,25 @@ class StockLocation(models.Model):
 class StockPickingType(models.Model):
     """根据 仓库 diff_type"""
     name = models.CharField('作业类型', max_length=255)
-    code = models.CharField('唯一编码', max_length=255, unique=True)
-    short_name = models.CharField('简称', max_length=255, null=True, blank=True)
-    address = models.CharField('仓库位置地址', max_length=255, null=True, blank=True)
+    code = models.CharField('唯一编码', max_length=255)
+    short_name = models.CharField('简称', max_length=255, default='')
+    address = models.CharField('仓库位置地址', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
-    diff_type = models.CharField('区分作业类型', max_length=255, choices=CHOICES_DIFF_TYPE, default='CFP')
+    diff_type = models.CharField('区分作业类型', max_length=255, choices=CHOICES_DIFF_TYPE)
 
-    warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属仓库')
+    warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, verbose_name='所属仓库')
     sequence = models.ForeignKey(BaseSequence, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='序列号')
     op_type = models.CharField('出入站类型', max_length=255, choices=CHOICES_OP_TYPE, default=DEFAULT_OP_TYPE)
     return_picking_type = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='退回的作业类型')
 
     show_reserved = models.BooleanField('显示预留', default=False)
+    show_lot = models.BooleanField('显示批次号', default=False)
     use_new_lot = models.BooleanField('是否创建新的批次号', default=False)
     use_already_lot = models.BooleanField('是否使用已有的批次号', default=False)
-    default_source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认来源位置', related_name='default_source_locations')
-    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='默认目的位置', related_name='default_destination_locations')
+    default_source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认来源位置', related_name='default_source_locations')
+    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认目的位置', related_name='default_destination_locations')
 
     def __str__(self):
         return self.name
@@ -124,32 +132,33 @@ class StockPicking(models.Model):
     采购单 ID  销售单ID
 
     """
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司')
-    name = models.CharField('库存调拨单号', max_length=255, unique=True, default='stock_picking')
-    origin = models.CharField('源单据号', max_length=255, null=True, blank=True)
-    note = models.CharField('备注', max_length=255, null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所在公司')
+    name = models.CharField('调拨单号', max_length=255)
+    origin = models.CharField('源单据号', max_length=255, default='')
+    note = models.CharField('备注', max_length=255, default='')
+    state = models.CharField('状态', max_length=255, choices=CHOICES_STATE, default=DEFAULT_STATE)
 
-    from_contact = models.CharField('源位置联系方式', max_length=255, null=True, blank=True)
-    to_contact = models.CharField('目的位置联系方式', max_length=255, null=True, blank=True)
-    return_note = models.CharField('退货原因', max_length=255, null=True, blank=True)
-    real_price_total = models.CharField('实际含税金额', max_length=255, null=True, blank=True)
+    from_contact = models.CharField('源位置联系方式', max_length=255, default='')
+    to_contact = models.CharField('目的位置联系方式', max_length=255, default='')
+    return_note = models.CharField('退货原因', max_length=255, default='')
+    real_price_total = models.CharField('实际含税金额', max_length=255, default='')
+
     # TODO 其他订单ID
-    purchase_order_id = models.CharField('采购单ID', max_length=255, null=True, blank=True)
-    sale_order_id = models.CharField('销售单ID', max_length=255, null=True, blank=True)
+    # purchase_order_id = models.CharField('采购单ID', max_length=255, null=True, blank=True)
+    # sale_order_id = models.CharField('销售单ID', max_length=255, null=True, blank=True)
 
     # 通过 stock picking type 计算
-    picking_diff_type = models.CharField('作业类型特殊编码', max_length=255, null=True, blank=True)
+    picking_diff_type = models.CharField('作业类型特殊编码', max_length=255)
 
-    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='合作伙伴')
-    picking_type = models.ForeignKey('StockPickingType', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='作业类型')
-    source_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='来源位置', related_name='source_locations')
-    destination_location = models.ForeignKey('StockLocation', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='目的位置', related_name='destination_locations')
+    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, verbose_name='合作伙伴')
+    picking_type = models.ForeignKey('StockPickingType', on_delete=models.CASCADE, verbose_name='作业类型')
+    source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='来源位置', related_name='source_locations')
+    destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='目的位置', related_name='destination_locations')
 
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     create_date = models.DateField('创建日期', default=datetime.today)
-    expect_date = models.DateField('预计完成日期', null=True, blank=True)
-    done_date = models.DateField('完成日期', null=True, blank=True)
-    state = models.CharField('状态', max_length=255, choices=CHOICES_STATE, default=DEFAULT_STATE)
+    expect_date = models.DateField('预计完成日期', default=toady_add_seven)
+    done_date = models.DateField('完成日期', default=toady_add_seven)
     is_active = models.BooleanField(default=True)
 
     class Meta:

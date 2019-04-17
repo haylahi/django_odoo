@@ -88,8 +88,8 @@ def get_model(app: str, model: str):
     return apps.get_model(app, model)
 
 
-def match_parentheses(value: str):
-    _stack = []
+def match_parentheses(value: str) -> bool:
+    _stack = list()
     parentheses = "{}"
     for i in range(len(value)):
         ch = value[i]
