@@ -160,7 +160,10 @@ class PartnerTag(models.Model):
 
 
 class Partner(models.Model):
-    """合作伙伴"""
+    """合作伙伴
+    如果有公司 则不显示有公司的合作伙伴
+
+    """
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司', related_name='my_partner')
     name = models.CharField('合作伙伴', max_length=255)
     code = models.CharField('唯一编码', max_length=255)

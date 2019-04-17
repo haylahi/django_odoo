@@ -29,4 +29,10 @@ class CityListCreateView(generics.ListCreateAPIView):
 
 
 def test_test(request):
+    from .tasks import task_test
+    try:
+        r = task_test.delay(1, 2)
+        print(r.get(timeout=1))
+    except Exception:
+        pass
     return HttpResponse('<h2>200 OK</h2> ', content_type='text/html; charset=utf-8', status=200)
