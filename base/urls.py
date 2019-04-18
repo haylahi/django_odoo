@@ -6,7 +6,8 @@ from .views import (
     test_test,
     CountryListCreateView, CountryDetailUpdateView,
     ProvinceListCreateView, CityListCreateView, UnitListCreateView,
-    CurrencyListCreateView, CurrencyRateListCreateView
+    CurrencyListCreateView, CurrencyRateListCreateView,
+    TaxListCreateView
 )
 
 urlpatterns = [
@@ -16,8 +17,8 @@ urlpatterns = [
     path('city/', CityListCreateView.as_view()),
     path('currency/', CurrencyListCreateView.as_view()),
     path('currency_rate/', CurrencyRateListCreateView.as_view()),
-    # ----------------------------------------------------------
     path('unit/', UnitListCreateView.as_view()),
+    path('tax/', TaxListCreateView.as_view()),
     # ----------------------------------------------------------
     path('test/', test_test)
 ]

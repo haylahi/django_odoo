@@ -5,11 +5,13 @@ from rest_framework import generics
 
 from base.serializer import (
     CountrySerializer, ProvinceSerializer, CitySerializer,
-    UnitSerializer, CurrencySerializer, CurrencyRateSerializer
+    UnitSerializer, CurrencySerializer, CurrencyRateSerializer,
+    TaxSerializer
 )
 from .models import (
     BaseCountry, BaseProvince, BaseCity,
-    BaseUnit, Currency, CurrencyRate
+    BaseUnit, Currency, CurrencyRate,
+    BaseTax
 )
 
 _log = logging.getLogger(__name__)
@@ -48,6 +50,11 @@ class CurrencyListCreateView(generics.ListCreateAPIView):
 class CurrencyRateListCreateView(generics.ListCreateAPIView):
     queryset = CurrencyRate.objects.filter(is_active=True)
     serializer_class = CurrencyRateSerializer
+
+
+class TaxListCreateView(generics.ListCreateAPIView):
+    queryset = BaseTax.objects.filter(is_active=True)
+    serializer_class = TaxSerializer
 
 
 # -----------------------------------------------------------------------------

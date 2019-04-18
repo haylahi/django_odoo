@@ -6,8 +6,8 @@ from rest_framework.validators import UniqueValidator
 
 from .models import (
     BaseCountry, BaseProvince, BaseCity, BaseUnit,
-    Currency, CurrencyRate
-)
+    Currency, CurrencyRate,
+    BaseTax)
 from .utils import get_field_desc
 
 
@@ -165,3 +165,30 @@ class CurrencyRateSerializer(serializers.ModelSerializer):
             except:
                 raise serializers.ValidationError('ERROR: type of rate is error')
         return super(CurrencyRateSerializer, self).create(validated_data)
+
+
+class TaxSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(
+        label=get_field_desc(BaseTax, 'code'),
+        validators=[UniqueValidator(queryset=BaseTax.objects.filter(is_active=True))]
+    )
+
+    class Meta:
+        model = BaseTax
+        fields = '__all__'
+        read_only_fields = ('is_active',)
+
+    def create(self, validated_data):
+        factor = validated_data.get('factor', None)
+        if factor is not None:
+            try:
+                float(factor)
+            except:
+                raise serializers.ValidationError('ERROR: type of factor is error')
+        rounding = validated_data.get('rounding', None)
+        if rounding is not None:
+            try:
+                float(rounding)
+            except:
+                raise serializers.ValidationError('ERROR: type of rounding is error')
+        return super(TaxSerializer, self).create(validated_data)
