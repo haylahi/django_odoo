@@ -4,7 +4,9 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import BaseCountry, BaseProvince, BaseCity
+from .models import (
+    BaseCountry, BaseProvince, BaseCity, BaseUnit
+)
 from .utils import get_field_desc
 
 
@@ -54,7 +56,7 @@ class ProvinceSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('ERROR: 在同一个国家下，不能有两个一样的省')
         if _s:
             raise serializers.ValidationError('ERROR: 在同一个国家下，省的简称是唯一的')
-        return super().create(validated_data)
+        return super(ProvinceSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError('ERROR：暂不支持的操作...')
@@ -86,9 +88,22 @@ class CitySerializer(serializers.ModelSerializer):
             if is_provincial_capital:
                 raise serializers.ValidationError('ERROR: 一个省只能有一个省会...')
 
-        return super().create(validated_data)
+        return super(CitySerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError('ERROR：暂不支持的操作...')
 
+
 # -----------------------------------------------------------------------------
+
+
+class UnitSerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
+    code = serializers.CharField(
+        label=get_field_desc(BaseUnit, 'code'),
+        validators=[UniqueValidator(queryset=BaseUnit.objects.filter(is_active=True), message='单位编码必须唯一')]
+    )
+
+    class Meta:
+        model = BaseUnit
+        fields = '__all__'

@@ -21,6 +21,7 @@ class AccountAccount(models.Model):
     内部交易不需要客户
 
     """
+    short_name = models.CharField('账户别名', max_length=255, default='')
     account_type = models.CharField('账户类型', max_length=255, choices=CHOICES_ACCOUNT_TYPE, default='BANK')
     account_name = models.CharField('开户账号', max_length=255)
     account_bank = models.CharField('开户银行', max_length=255)

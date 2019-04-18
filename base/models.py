@@ -456,7 +456,7 @@ class BaseUnit(models.Model):
             return compute_float(str(_num), self.rounding)
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['-unit_type', '-name']
         db_table = 'base_unit'
 
 
