@@ -44,7 +44,7 @@ class CustomFileStorage(FileSystemStorage):
     from django.conf import settings
 
     def __init__(self, location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL, *args, **kwargs):
-        super().__init__(location, base_url, *args, **kwargs)
+        super(CustomFileStorage, self).__init__(location, base_url, *args, **kwargs)
 
     def _save(self, name, content):
         _name = name
@@ -53,7 +53,7 @@ class CustomFileStorage(FileSystemStorage):
         dir_name = os.path.dirname(_name)
         new_file_name = '{}{}{}'.format(generate_unique_code(), generate_datetime(), suffix)
         _name = os.path.join(dir_name, new_file_name)
-        return super()._save(_name, _content)
+        return super(CustomFileStorage, self)._save(_name, _content)
 
 
 def generate_unique_code():
@@ -94,6 +94,7 @@ def get_model(app: str, model: str):
 def get_field_desc(model_obj, field_name: str):
     from django.core.exceptions import FieldDoesNotExist
     try:
+        # noinspection PyProtectedMember
         _field = model_obj._meta.get_field(field_name)
         return _field.verbose_name
     except FieldDoesNotExist:

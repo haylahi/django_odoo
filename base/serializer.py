@@ -7,7 +7,8 @@ from rest_framework.validators import UniqueValidator
 from .models import (
     BaseCountry, BaseProvince, BaseCity, BaseUnit,
     Currency, CurrencyRate,
-    BaseTax)
+    BaseTax
+)
 from .utils import get_field_desc
 
 
