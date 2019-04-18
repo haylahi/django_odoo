@@ -5,7 +5,8 @@ from django.urls import path
 from .views import (
     test_test,
     CountryListCreateView, CountryDetailUpdateView,
-    ProvinceListCreateView, CityListCreateView, UnitListCreateView
+    ProvinceListCreateView, CityListCreateView, UnitListCreateView,
+    CurrencyListCreateView, CurrencyRateListCreateView
 )
 
 urlpatterns = [
@@ -13,6 +14,8 @@ urlpatterns = [
     path('country/<int:pk>/', CountryDetailUpdateView.as_view()),
     path('province/', ProvinceListCreateView.as_view()),
     path('city/', CityListCreateView.as_view()),
+    path('currency/', CurrencyListCreateView.as_view()),
+    path('currency_rate/', CurrencyRateListCreateView.as_view()),
     # ----------------------------------------------------------
     path('unit/', UnitListCreateView.as_view()),
     # ----------------------------------------------------------

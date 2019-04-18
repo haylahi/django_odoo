@@ -1,12 +1,16 @@
-import random
+import logging
 
 from django.http import HttpResponse
 from rest_framework import generics
 
-from base.serializer import CountrySerializer, ProvinceSerializer, CitySerializer, UnitSerializer
-from .models import BaseCountry, BaseProvince, BaseCity, BaseUnit
-
-import logging
+from base.serializer import (
+    CountrySerializer, ProvinceSerializer, CitySerializer,
+    UnitSerializer, CurrencySerializer, CurrencyRateSerializer
+)
+from .models import (
+    BaseCountry, BaseProvince, BaseCity,
+    BaseUnit, Currency, CurrencyRate
+)
 
 _log = logging.getLogger(__name__)
 
@@ -34,6 +38,16 @@ class CityListCreateView(generics.ListCreateAPIView):
 class UnitListCreateView(generics.ListCreateAPIView):
     queryset = BaseUnit.objects.filter(is_active=True)
     serializer_class = UnitSerializer
+
+
+class CurrencyListCreateView(generics.ListCreateAPIView):
+    queryset = Currency.objects.filter(is_active=True)
+    serializer_class = CurrencySerializer
+
+
+class CurrencyRateListCreateView(generics.ListCreateAPIView):
+    queryset = CurrencyRate.objects.filter(is_active=True)
+    serializer_class = CurrencyRateSerializer
 
 
 # -----------------------------------------------------------------------------

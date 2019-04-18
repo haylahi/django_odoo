@@ -5,7 +5,8 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from .models import (
-    BaseCountry, BaseProvince, BaseCity, BaseUnit
+    BaseCountry, BaseProvince, BaseCity, BaseUnit,
+    Currency, CurrencyRate
 )
 from .utils import get_field_desc
 
@@ -104,6 +105,63 @@ class UnitSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=BaseUnit.objects.filter(is_active=True), message='单位编码必须唯一')]
     )
 
+    def create(self, validated_data):
+        factor = validated_data.get('factor', None)
+        if factor is not None:
+            try:
+                float(factor)
+            except:
+                raise serializers.ValidationError('ERROR: type of factor is error')
+        rounding = validated_data.get('rounding', None)
+        if rounding is not None:
+            try:
+                float(rounding)
+            except:
+                raise serializers.ValidationError('ERROR: type of rounding is error')
+
+        return super(UnitSerializer, self).create(validated_data)
+
     class Meta:
         model = BaseUnit
         fields = '__all__'
+
+
+class CurrencySerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
+    name = serializers.CharField(
+        label=get_field_desc(Currency, 'name'),
+        validators=[UniqueValidator(queryset=Currency.objects.filter(is_active=True))]
+    )
+    code = serializers.CharField(
+        label=get_field_desc(Currency, 'code'),
+        validators=[UniqueValidator(queryset=Currency.objects.filter(is_active=True))]
+    )
+
+    class Meta:
+        model = Currency
+        fields = '__all__'
+
+    def create(self, validated_data):
+        rounding = validated_data.get('rounding', None)
+        if rounding is not None:
+            try:
+                float(rounding)
+            except:
+                raise serializers.ValidationError('ERROR: type of rounding is error')
+        return super(CurrencySerializer, self).create(validated_data)
+
+
+class CurrencyRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CurrencyRate
+        fields = '__all__'
+        read_only_fields = ('create_time', 'is_active')
+
+    def create(self, validated_data):
+        rate = validated_data.get('rate', None)
+        if rate is not None:
+            try:
+                float(rate)
+            except:
+                raise serializers.ValidationError('ERROR: type of rate is error')
+        return super(CurrencyRateSerializer, self).create(validated_data)
