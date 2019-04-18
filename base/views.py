@@ -44,4 +44,4 @@ def test_test(request):
         ret = task.get(timeout=1)
     except:
         _log.error('任务执行失败')
-    return HttpResponse('<h2>200 OK</h2> {ret}'.format(ret=ret), content_type='text/html; charset=utf-8', status=200)
+    return HttpResponse('<h2>200 OK</h2> <h3>{ret}</h3>'.format(ret=ret), content_type='text/html; charset=utf-8', status=200)
