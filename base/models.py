@@ -318,6 +318,9 @@ class UserProfile(AbstractBaseUser):
     objects = UserProfileManager()
     USERNAME_FIELD = 'email'
 
+    def create_user(self):
+        UserInfo.objects.create(user=self, is_active=True)
+
     def has_perm(self, perm, obj=None):
         print(self, perm, obj)
         return True

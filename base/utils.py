@@ -30,7 +30,7 @@ class UserProfileManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         # 创建一个用户信息
-        user.create_user_info()
+        user.create_user()
         return user
 
     def create_superuser(self, email, password, company=None):

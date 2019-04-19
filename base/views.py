@@ -1,18 +1,17 @@
 import logging
 
 from django.http import HttpResponse
-from rest_framework import generics
+from rest_framework import generics, viewsets, status
+from rest_framework.response import Response
 
 from base.serializer import (
     CountrySerializer, ProvinceSerializer, CitySerializer,
     UnitSerializer, CurrencySerializer, CurrencyRateSerializer,
-    TaxSerializer
-)
+    TaxSerializer, CompanySerializer)
 from .models import (
     BaseCountry, BaseProvince, BaseCity,
     BaseUnit, Currency, CurrencyRate,
-    BaseTax
-)
+    BaseTax, Company)
 
 _log = logging.getLogger(__name__)
 
@@ -55,6 +54,11 @@ class CurrencyRateListCreateView(generics.ListCreateAPIView):
 class TaxListCreateView(generics.ListCreateAPIView):
     queryset = BaseTax.objects.filter(is_active=True)
     serializer_class = TaxSerializer
+
+
+class CompanyListCreateView(generics.ListCreateAPIView):
+    queryset = Company.objects.filter(is_active=True)
+    serializer_class = CompanySerializer
 
 
 # -----------------------------------------------------------------------------

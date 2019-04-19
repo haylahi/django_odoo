@@ -7,7 +7,7 @@ from .views import (
     CountryListCreateView, CountryDetailUpdateView,
     ProvinceListCreateView, CityListCreateView, UnitListCreateView,
     CurrencyListCreateView, CurrencyRateListCreateView,
-    TaxListCreateView
+    TaxListCreateView, CompanyListCreateView
 )
 
 urlpatterns = [
@@ -19,6 +19,9 @@ urlpatterns = [
     path('currency_rate/', CurrencyRateListCreateView.as_view()),
     path('unit/', UnitListCreateView.as_view()),
     path('tax/', TaxListCreateView.as_view()),
+
+    path('company/', CompanyListCreateView.as_view()),
+
     # ----------------------------------------------------------
     path('test/', test_test)
 ]

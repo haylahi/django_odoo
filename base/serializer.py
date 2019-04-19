@@ -6,8 +6,7 @@ from rest_framework.validators import UniqueValidator
 
 from .models import (
     BaseCountry, BaseProvince, BaseCity, BaseUnit,
-    Currency, CurrencyRate,
-    BaseTax
+    Currency, CurrencyRate, BaseTax, Company, Partner
 )
 from .utils import get_field_desc
 
@@ -193,3 +192,46 @@ class TaxSerializer(serializers.ModelSerializer):
             except:
                 raise serializers.ValidationError('ERROR: type of rounding is error')
         return super(TaxSerializer, self).create(validated_data)
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(
+        required=True, label=get_field_desc(Company, 'name'),
+        validators=[UniqueValidator(queryset=Company.objects.filter(is_active=True))]
+    )
+    code = serializers.CharField(
+        required=True, label=get_field_desc(Company, 'code'),
+        validators=[UniqueValidator(queryset=Company.objects.filter(is_active=True))]
+    )
+    is_active = serializers.BooleanField(default=True, read_only=True)
+    parent_company = serializers.PrimaryKeyRelatedField(
+        label=get_field_desc(Company, 'parent_company'),
+        many=False, allow_null=True, queryset=Company.objects.filter(is_active=True)
+    )
+    default_tax = serializers.PrimaryKeyRelatedField(
+        label=get_field_desc(Company, 'default_tax'),
+        many=False, allow_null=True, queryset=BaseTax.objects.filter(is_active=True)
+    )
+    default_currency = serializers.PrimaryKeyRelatedField(
+        label=get_field_desc(Company, 'default_currency'),
+        many=False, allow_null=True, queryset=Currency.objects.filter(is_active=True)
+    )
+
+    class Meta:
+        model = Company
+        fields = '__all__'
+
+    def create(self, attr: dict):
+        company = super(CompanySerializer, self).create(attr)
+        Partner.objects.create(
+            company=company, name=company.name,
+            code=company.code, create_time=company.create_time, is_active=True
+        )
+        return company
+
+    def update(self, instance: Company, attr):
+        instance.dummy_discount = attr.get('dummy_discount', instance.dummy_discount)
+        instance.default_tax = attr.get('default_tax', instance.default_tax)
+        instance.save()
+        return instance
