@@ -64,15 +64,18 @@ class StockWarehouse(models.Model):
 
 class StockLocation(models.Model):
     warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, verbose_name='所属仓库')
-    name = models.CharField('仓库名称', max_length=255)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所在公司', null=True, blank=True)
+    name = models.CharField('位置名称', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
+    # 按条件过滤可以选择的位置
     location_type = models.CharField('位置类型', max_length=255, choices=CHOICES_LOCATION_TYPE, default=DEFAULT_LOCATION_TYPE)
     is_return_location = models.BooleanField('是否为退货位置', default=False)
+    # 上级位置只能选择视图位置 ?
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级位置', related_name='childs')
 
-    pos_x = models.CharField('X', max_length=255, default='')
-    pos_y = models.CharField('Y', max_length=255, default='')
-    pos_z = models.CharField('Z', max_length=255, default='')
+    pos_x = models.CharField('X', max_length=255)
+    pos_y = models.CharField('Y', max_length=255)
+    pos_z = models.CharField('Z', max_length=255)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -80,19 +83,19 @@ class StockLocation(models.Model):
         return self.childs.all().filter(is_active=True)
 
     def __str__(self):
-        return self.name
+        return '{}[{}]'.format(self.name, self.get_location_type_display())
 
     class Meta:
         ordering = ['-name']
         db_table = 'stock_location'
+        unique_together = ['pos_x', 'pos_y', 'pos_z']
 
 
 class StockPickingType(models.Model):
-    """根据 仓库 diff_type"""
     name = models.CharField('作业类型', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
-    short_name = models.CharField('简称', max_length=255, default='')
-    address = models.CharField('仓库位置地址', max_length=255, default='')
+    short_name = models.CharField('简称', max_length=255)
+    address = models.CharField('仓库位置地址', max_length=255)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 

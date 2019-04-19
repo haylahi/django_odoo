@@ -94,10 +94,10 @@ CHOICES_PARTNER_TAG_COLOR = [
 ]
 
 CHOICES_PARTNER_LEVEL = [
-    ('A', 'VIP'),
-    ('B', '高级'),
-    ('C', ''),
-    ('D', ''),
+    ('A', 'SVIP'),
+    ('B', 'VIP'),
+    ('C', '高级'),
+    ('D', '中等'),
     ('E', '普通'),
 ]
 
