@@ -223,6 +223,13 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, attr: dict):
+        # 检查float字段
+        from .utils import check_float
+
+        check_float(attr.get('child_dummy_balance', '0'))
+        check_float(attr.get('child_cash_balance', '0'))
+        check_float(attr.get('child_dummy_balance', '0'))
+
         company = super(CompanySerializer, self).create(attr)
         Partner.objects.create(
             company=company, name=company.name,
@@ -231,6 +238,8 @@ class CompanySerializer(serializers.ModelSerializer):
         return company
 
     def update(self, instance: Company, attr):
+        from .utils import check_float
+        check_float(attr.get('child_dummy_balance', '0'))
         instance.dummy_discount = attr.get('dummy_discount', instance.dummy_discount)
         instance.default_tax = attr.get('default_tax', instance.default_tax)
         instance.save()

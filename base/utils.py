@@ -132,3 +132,11 @@ def image_to_base64(path: str):
     if _ret == '':
         raise ValueError('[ERROR] data error ...')
     return _ret
+
+
+def check_float(val: str):
+    try:
+        float(val)
+    except:
+        from rest_framework import serializers
+        raise serializers.ValidationError('ERROR 格式转换错误...')
