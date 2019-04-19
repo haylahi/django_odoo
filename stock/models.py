@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.db import models
 
@@ -42,13 +42,6 @@ CHOICES_DIFF_TYPE = [
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-
-
-def toady_add_seven():
-    """2018 12 30 + 7 ?"""
-    _now = datetime.today()
-    _after = _now + timedelta(days=7)
-    return _after
 
 
 class StockWarehouse(models.Model):
@@ -103,8 +96,6 @@ class StockPickingType(models.Model):
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
-    diff_type = models.CharField('区分作业类型', max_length=255, choices=CHOICES_DIFF_TYPE)
-
     warehouse = models.ForeignKey('StockWarehouse', on_delete=models.CASCADE, verbose_name='所属仓库')
     sequence = models.ForeignKey(BaseSequence, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='序列号')
     op_type = models.CharField('出入站类型', max_length=255, choices=CHOICES_OP_TYPE, default=DEFAULT_OP_TYPE)
@@ -147,9 +138,6 @@ class StockPicking(models.Model):
     # purchase_order_id = models.CharField('采购单ID', max_length=255, null=True, blank=True)
     # sale_order_id = models.CharField('销售单ID', max_length=255, null=True, blank=True)
 
-    # 通过 stock picking type 计算
-    picking_diff_type = models.CharField('作业类型特殊编码', max_length=255)
-
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, verbose_name='合作伙伴')
     picking_type = models.ForeignKey('StockPickingType', on_delete=models.CASCADE, verbose_name='作业类型')
     source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='来源位置', related_name='source_locations')
@@ -157,8 +145,8 @@ class StockPicking(models.Model):
 
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     create_date = models.DateField('创建日期', default=datetime.today)
-    expect_date = models.DateField('预计完成日期', default=toady_add_seven)
-    done_date = models.DateField('完成日期', default=toady_add_seven)
+    expect_date = models.DateField('预计完成日期', default=datetime.today)
+    done_date = models.DateField('完成日期', default=datetime.today)
     is_active = models.BooleanField(default=True)
 
     class Meta:
