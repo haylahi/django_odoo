@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from django.db import models
 
-from base.models import Company
+from base.models import UserProfile
 
 """
 产品标签
@@ -10,7 +12,9 @@ from base.models import Company
 
 class ProductBrand(models.Model):
     name = models.CharField('产品品牌', max_length=255)
-    code = models.CharField('编号', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -21,11 +25,11 @@ class ProductBrand(models.Model):
         db_table = 'product_brand'
 
 
-class ProductSeries(models.Model):
-    name = models.CharField('产品系列', max_length=255)
-    code = models.CharField('编号', max_length=255)
-    brand = models.ForeignKey(ProductBrand, on_delete=models.CASCADE, verbose_name='所属品牌')
-    is_common_series = models.BooleanField(default=False, verbose_name='通用系列? ')
+class ProductCategory(models.Model):
+    name = models.CharField('产品类别', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -33,13 +37,15 @@ class ProductSeries(models.Model):
 
     class Meta:
         ordering = ['-name']
-        db_table = 'product_series'
+        db_table = 'product_category'
 
 
-class ProductStyle(models.Model):
-    name = models.CharField('产品款式', max_length=255)
-    code = models.CharField('编号', max_length=255)
-    series = models.ForeignKey(ProductSeries, on_delete=models.CASCADE, verbose_name='所属系列')
+class ProductTag(models.Model):
+    name = models.CharField('产品标签', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, verbose_name='所属用户', related_name='product_tags')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -47,4 +53,20 @@ class ProductStyle(models.Model):
 
     class Meta:
         ordering = ['-name']
-        db_table = 'product_style'
+        db_table = 'product_tag'
+
+
+class ProductProduct(models.Model):
+    name = models.CharField('产品标签', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+
+    brand = models.ForeignKey(ProductBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属品牌')
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属类别')
+    tags = models.ManyToManyField(ProductTag, verbose_name='标签', blank=True)
+
+    def __str__(self):
+        return '{} [{}]'.format(self.name, self.code)
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'product_product'
