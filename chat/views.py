@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 
 
 def index_page(request):
-    return render(request, 'chat/index.html', {})
+    return render(request, 'chat/index.html')
 
 
 def room_page(request, room_name):

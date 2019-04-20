@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chatting Room</title>
+    <title>聊天室</title>
 </head>
 <body>
-What chat room would you like to enter?<br/>
-<input id="room-name-input" type="text" size="100" placeholder="请输入聊天室的名字"/><br/>
+<label>
+    <span>聊天室的名字：</span>
+    <input id="room-name-input" type="text" size="50"/>
+</label>
+<br/>
 <input id="room-name-submit" type="button" value="Enter"/>
 
 <script>
@@ -18,9 +21,9 @@ What chat room would you like to enter?<br/>
     };
     document.querySelector('#room-name-submit').onclick = function (e) {
         var roomName = document.querySelector('#room-name-input').value;
+        // 跳转到 root/chat/{room_name}/
         window.location.pathname = '/chat/' + roomName + '/';
     };
-
 
 </script>
 </body>
