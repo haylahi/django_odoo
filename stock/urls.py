@@ -8,4 +8,5 @@ from . import views as _v
 urlpatterns = [
     path('warehouse/', _v.StockWarehouseListCreateView.as_view()),
     path('location/', _v.LocationListCreateView.as_view()),
+    path('stock_picking_type/', _v.StockPickingTypeListCreateView.as_view()),
 ]

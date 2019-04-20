@@ -37,3 +37,15 @@ class LocationSerializer(serializers.ModelSerializer):
         model = _m.StockLocation
         fields = '__all__'
         read_only_fields = ('create_time', 'is_active')
+
+
+class StockPickingTypeSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(
+        label='作业类型编号',
+        validators=[UniqueValidator(queryset=_m.StockPickingType.objects.filter(is_active=True))]
+    )
+
+    class Meta:
+        model = _m.StockPickingType
+        fields = '__all__'
+        read_only_fields = ('create_time', 'is_active')

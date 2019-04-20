@@ -12,3 +12,8 @@ class StockWarehouseListCreateView(generics.ListCreateAPIView):
 class LocationListCreateView(generics.ListCreateAPIView):
     queryset = _m.StockLocation.objects.filter(is_active=True)
     serializer_class = _s.LocationSerializer
+
+
+class StockPickingTypeListCreateView(generics.ListCreateAPIView):
+    queryset = _m.StockPickingType.objects.filter(is_active=True)
+    serializer_class = _s.StockPickingTypeSerializer
