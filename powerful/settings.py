@@ -2,6 +2,8 @@ import os
 
 import djcelery
 
+# -----------------------------------------------------------------------------
+
 djcelery.setup_loader()
 
 BROKER_URL = 'amqp://admin:admin@localhost//'
@@ -9,6 +11,8 @@ BROKER_URL = 'amqp://admin:admin@localhost//'
 CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# -----------------------------------------------------------------------------
 
 SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
 
@@ -27,12 +31,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # myapp
     'djcelery',
+    'channels',
     'rest_framework',
     'base',
     'stock',
     'account',
     'orders',
     'product',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +70,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'powerful.wsgi.application'
+
+ASGI_APPLICATION = "powerful.routing.application"
 
 DATABASES = {
     'default': {

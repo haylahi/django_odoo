@@ -18,7 +18,7 @@ class AccountAccount(models.Model):
     """
     账号
 
-    内部交易不需要客户
+    内部交易不需要客户 区分收付款
 
     """
     short_name = models.CharField('账户别名', max_length=255, default='')
