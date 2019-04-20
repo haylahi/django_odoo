@@ -1,4 +1,5 @@
 import os
+import sys
 
 import djcelery
 
@@ -13,6 +14,8 @@ CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # -----------------------------------------------------------------------------
+
+sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
 
 SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
 
@@ -40,6 +43,15 @@ INSTALLED_APPS = [
     'product',
     'chat',
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
