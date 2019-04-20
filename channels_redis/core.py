@@ -177,16 +177,7 @@ class RedisChannelLayer(BaseChannelLayer):
 
     brpop_timeout = 5
 
-    def __init__(
-        self,
-        hosts=None,
-        prefix="asgi:",
-        expiry=60,
-        group_expiry=86400,
-        capacity=100,
-        channel_capacity=None,
-        symmetric_encryption_keys=None,
-    ):
+    def __init__(self, hosts=None, prefix="asgi:", expiry=60, group_expiry=86400, capacity=100, channel_capacity=None, symmetric_encryption_keys=None):
         # Store basic information
         self.expiry = expiry
         self.group_expiry = group_expiry
@@ -203,7 +194,6 @@ class RedisChannelLayer(BaseChannelLayer):
         self._receive_index_generator = itertools.cycle(range(len(self.hosts)))
         self._send_index_generator = itertools.cycle(range(len(self.hosts)))
         # Decide on a unique client prefix to use in ! sections
-        # TODO: ensure uniqueness better, e.g. Redis keys with SETNX
         self.client_prefix = "".join(
             random.choice(string.ascii_letters) for i in range(8)
         )
@@ -508,7 +498,6 @@ class RedisChannelLayer(BaseChannelLayer):
 
         # Message decode
         message = self.deserialize(content)
-        # TODO: message expiry?
         # If there is a full channel name stored in the message, unpack it.
         if "__asgi_channel__" in message:
             channel = message["__asgi_channel__"]
@@ -520,7 +509,6 @@ class RedisChannelLayer(BaseChannelLayer):
         Returns a new channel name that can be used by something in our
         process as a specific channel.
         """
-        # TODO: Guarantee uniqueness better?
         return "%s.%s!%s" % (
             prefix,
             self.client_prefix,
@@ -620,22 +608,21 @@ class RedisChannelLayer(BaseChannelLayer):
         )
 
         for connection_index, channel_redis_keys in connection_to_channel_keys.items():
-
             # Create a LUA script specific for this connection.
             # Make sure to use the message specific to this channel, it is
             # stored in channel_to_message dict and contains the
             # __asgi_channel__ key.
 
             group_send_lua = (
-                """
-                    for i=1,#KEYS do
-                        if redis.call('LLEN', KEYS[i]) < tonumber(ARGV[i + #KEYS]) then
-                            redis.call('LPUSH', KEYS[i], ARGV[i])
-                            redis.call('EXPIRE', KEYS[i], %d)
-                        end
-                    end
                     """
-                % self.expiry
+                        for i=1,#KEYS do
+                            if redis.call('LLEN', KEYS[i]) < tonumber(ARGV[i + #KEYS]) then
+                                redis.call('LPUSH', KEYS[i], ARGV[i])
+                                redis.call('EXPIRE', KEYS[i], %d)
+                            end
+                        end
+                        """
+                    % self.expiry
             )
 
             # We need to filter the messages to keep those related to the connection
