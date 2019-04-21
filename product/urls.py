@@ -14,4 +14,5 @@ urlpatterns = [
 
     path('looks_type/', v.AppearanceTypeCreateListView.as_view()),
     path('looks_group/', v.AppearanceGroupListCreateView.as_view()),
+    path('looks_item/', v.AppearanceItemCreateListView.as_view()),
 ]

@@ -40,3 +40,8 @@ class AppearanceTypeCreateListView(generics.ListCreateAPIView):
 class AppearanceGroupListCreateView(generics.ListCreateAPIView):
     queryset = m.AppearanceGroup.objects.filter(is_active=True)
     serializer_class = s.AppearanceGroupSerializer
+
+
+class AppearanceItemCreateListView(generics.ListCreateAPIView):
+    queryset = m.AppearanceItem.objects.filter(is_active=True)
+    serializer_class = s.AppearanceItemSerializer
