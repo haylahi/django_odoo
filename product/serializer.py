@@ -5,6 +5,11 @@ from rest_framework import serializers
 
 from . import models as m
 
+"""
+code 唯一性验证
+
+"""
+
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:

@@ -7,4 +7,5 @@ from . import views as v
 
 urlpatterns = [
     path('brand/', v.BrandCreateListView.as_view()),
+    path('category/',v.CategoryCreateListView.as_view()),
 ]
