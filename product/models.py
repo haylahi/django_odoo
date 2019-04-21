@@ -102,6 +102,7 @@ class ProductProduct(models.Model):
     use_stock = models.BooleanField('使用库存？', default=True)
     stock_tracking = models.CharField('产品库存追踪', max_length=255, choices=CHOICES_STOCK_TRACKING, default='LOT')
 
+    #  条码唯一性验证
     barcode = models.CharField('商品条码', max_length=255, default='')
 
     """
