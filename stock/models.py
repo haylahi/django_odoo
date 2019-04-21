@@ -72,16 +72,13 @@ class StockLocation(models.Model):
     location_type = models.CharField('位置类型', max_length=255, choices=CHOICES_LOCATION_TYPE, default=DEFAULT_LOCATION_TYPE)
     is_return_location = models.BooleanField('是否为退货位置', default=False)
     # 上级位置只能选择视图位置 ?
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级位置', related_name='childs')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级位置', related_name='child_location_list')
 
     pos_x = models.CharField('X', max_length=255)
     pos_y = models.CharField('Y', max_length=255)
     pos_z = models.CharField('Z', max_length=255)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
-
-    def get_child_locations(self):
-        return self.childs.all().filter(is_active=True)
 
     def __str__(self):
         return '{}[{}]'.format(self.name, self.get_location_type_display())
@@ -109,8 +106,8 @@ class StockPickingType(models.Model):
     show_lot = models.BooleanField('显示批次号', default=False)
     use_new_lot = models.BooleanField('是否创建新的批次号', default=False)
     use_already_lot = models.BooleanField('是否使用已有的批次号', default=False)
-    default_source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认来源位置', related_name='default_source_locations')
-    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认目的位置', related_name='default_destination_locations')
+    default_source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认来源位置', related_name='picking_type_source_list')
+    default_destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='默认目的位置', related_name='picking_type_destination_list')
 
     def __str__(self):
         return self.name
@@ -144,8 +141,8 @@ class StockPicking(models.Model):
 
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, verbose_name='合作伙伴')
     picking_type = models.ForeignKey('StockPickingType', on_delete=models.CASCADE, verbose_name='作业类型')
-    source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='来源位置', related_name='source_locations')
-    destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='目的位置', related_name='destination_locations')
+    source_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='来源位置', related_name='picking_source_list')
+    destination_location = models.ForeignKey('StockLocation', on_delete=models.CASCADE, verbose_name='目的位置', related_name='picking_destination_list')
 
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     create_date = models.DateField('创建日期', default=datetime.today)
@@ -157,22 +154,21 @@ class StockPicking(models.Model):
         ordering = ['-create_time', '-name']
         db_table = 'stock_picking'
 
-
-class StockMove(models.Model):
-    class Meta:
-        db_table = 'stock_move'
-
-
-class StockMoveLine(models.Model):
-    class Meta:
-        db_table = 'stock_move_line'
-
-
-class StockProductionLot(models.Model):
-    class Meta:
-        db_table = 'stock_production_lot'
-
-
-class StockQuantity(models.Model):
-    class Meta:
-        db_table = 'stock_quant'
+# class StockMove(models.Model):
+#     class Meta:
+#         db_table = 'stock_move'
+#
+#
+# class StockMoveLine(models.Model):
+#     class Meta:
+#         db_table = 'stock_move_line'
+#
+#
+# class StockProductionLot(models.Model):
+#     class Meta:
+#         db_table = 'stock_production_lot'
+#
+#
+# class StockQuantity(models.Model):
+#     class Meta:
+#         db_table = 'stock_quant'

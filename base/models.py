@@ -106,10 +106,11 @@ CHOICES_PARTNER_LEVEL = [
 
 
 class Company(models.Model):
-    """公司
-            检查 code是否唯一
-            不能选择自己的公司
-            创建partner
+    """
+    公司
+    检查 code是否唯一
+    不能选择自己的公司
+    创建partner
     """
 
     name = models.CharField('公司名称', max_length=255)
@@ -117,7 +118,7 @@ class Company(models.Model):
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
-    parent_company = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级公司', related_name='child_companys')
+    parent_company = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级公司', related_name='child_company_list')
     default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
     default_currency = models.ForeignKey('Currency', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认货币')
 
@@ -126,17 +127,7 @@ class Company(models.Model):
     dummy_discount = models.CharField('默认返点比例(%)', max_length=255, default='40')
 
     def __str__(self):
-        return '{}({})'.format(self.name, self.code)
-
-    def my_child_companies(self):
-        return self.child_companys.all().filter(is_active=True)
-
-    def self_partner(self):
-        p = self.my_partner.all().filter(is_active=True)
-        if p and len(p) == 1:
-            return p
-        else:
-            raise ValueError("ERROR: company's partner error")
+        return '{} ({})'.format(self.name, self.code)
 
     class Meta:
         ordering = ['-name']
@@ -147,7 +138,7 @@ class PartnerTag(models.Model):
     """检查同一个用户下标签的名字是否相同"""
     name = models.CharField('名称', max_length=255)
     color = models.CharField('颜色', max_length=255, choices=CHOICES_PARTNER_TAG_COLOR, default='green')
-    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='所属用户', related_name='partner_tags')
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='所属用户', related_name='user_partner_tags')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
@@ -164,7 +155,8 @@ class Partner(models.Model):
     如果有公司 则不显示有公司的合作伙伴
 
     """
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司', related_name='my_partner')
+    # 一个公司只能有一个partner
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司', related_name='company_partner')
     name = models.CharField('合作伙伴', max_length=255)
     code = models.CharField('唯一编码', max_length=255, default='')
     desc = models.CharField('详细描述', max_length=255, default='')
@@ -196,10 +188,10 @@ class Partner(models.Model):
     city = models.ForeignKey('BaseCity', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='城市')
     address = models.CharField('详细地址', max_length=255, default='')
 
-    # TODO 仓库位置 指定一个虚拟虚拟位置 银行账户 客户类型
+    # TODO 仓库位置 指定一个虚拟位置 银行账户 客户类型
 
     def __str__(self):
-        return '{}({})'.format(self.name, self.code)
+        return '{} ({})'.format(self.name, self.code)
 
     class Meta:
         ordering = ['-name']
@@ -216,20 +208,10 @@ class Department(models.Model):
     is_active = models.BooleanField(default=True)
 
     department_type = models.CharField('部门类型', max_length=255, choices=CHOICES_DEPARTMENT_TYPE, default=DEFAULT_DEPARTMENT_TYPE)
-    parent_department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级部门', related_name='child_departments')
+    parent_department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级部门', related_name='child_department_list')
 
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
-
-    def my_child_departments(self):
-        return self.child_departments.all().filter(is_active=True)
-
-    def department_manager(self):
-        employees = self.employees.all().filter(is_active=True, is_department_manager=True)
-        if employees and len(employees) == 1:
-            return employees[0]
-        else:
-            return None
 
     class Meta:
         ordering = ['-name']
@@ -256,7 +238,7 @@ class JobClassification(models.Model):
 class Employee(models.Model):
     """员工"""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, verbose_name='所在公司')
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, verbose_name='所属部门', related_name='employees')
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, verbose_name='所属部门', related_name='department_employee_list')
     user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, verbose_name='uid')
     job = models.ForeignKey('JobClassification', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='职位')
     is_department_manager = models.BooleanField(default=False, verbose_name='部门经理')
@@ -277,9 +259,6 @@ class Employee(models.Model):
     def __str__(self):
         return self.name
 
-    def my_department_manager(self):
-        return self.department.department_manager()
-
     class Meta:
         ordering = ['-name']
         db_table = 'base_employee'
@@ -289,16 +268,13 @@ class UserGroup(models.Model):
     """用户组"""
     name = models.CharField('用户组名', max_length=255)
     code = models.CharField('唯一编码', max_length=255)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级用户组', related_name='child_groups')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='上级用户组', related_name='child_group_list')
     users = models.ManyToManyField('UserProfile', blank=True)
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
-
-    def my_child_groups(self):
-        return self.child_groups.all().filter(is_active=True)
 
     class Meta:
         ordering = ['-name']
@@ -395,7 +371,7 @@ class BaseTax(models.Model):
 
 
 class CurrencyRate(models.Model):
-    currency = models.ForeignKey('Currency', on_delete=models.CASCADE, verbose_name='所属货币', related_name='rates')
+    currency = models.ForeignKey('Currency', on_delete=models.CASCADE, verbose_name='所属货币', related_name='currency_rate_list')
     rate = models.CharField('比率', max_length=255, default='100')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
@@ -416,18 +392,14 @@ class Currency(models.Model):
     rounding = models.CharField('精度', max_length=255, default='0.00')
     is_active = models.BooleanField(default=True)
 
+    # TODO 获取最新的汇率
+
     def __str__(self):
         return '{}({})'.format(self.name, self.code)
 
     class Meta:
         ordering = ['-name']
         db_table = 'base_currency'
-
-    # TODO 获取最新的汇率
-    def compute_standard_total(self, total: str):
-        rate = self.rates.all().last().rate
-        _num = float(total) / 100 * float(rate)
-        return compute_float(str(_num), self.rounding)
 
 
 class BaseUnit(models.Model):
