@@ -41,7 +41,6 @@ class ProductBrand(models.Model):
     name = models.CharField('产品品牌', max_length=255)
     code = models.CharField('编号', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
-
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -56,7 +55,6 @@ class ProductCategory(models.Model):
     name = models.CharField('产品类别', max_length=255)
     code = models.CharField('编号', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
-
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

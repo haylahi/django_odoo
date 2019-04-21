@@ -22,8 +22,9 @@ from django.views.static import serve
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('base/', include('base.urls')),
-    path('stock/',include('stock.urls')),
-    path('chat/',include('chat.urls')),
+    path('stock/', include('stock.urls')),
+    path('product/', include('product.urls')),
+    path('chat/', include('chat.urls')),
     url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
