@@ -33,6 +33,8 @@ CHOICES_STOCK_TRACKING = [
 产品标签
 产品价格表 配件价格表 价格表针对的公司  色板价格表  配件价格表
 产品包装  
+解析excel数据
+
 
 """
 
@@ -189,3 +191,209 @@ class ProductPriceItem(models.Model):
     class Meta:
         ordering = ['create_time']
         db_table = 'product_price_item'
+
+
+# -------------------------------------------------------------------------------------------------
+
+
+class PartsGroup(models.Model):
+    name = models.CharField('配件组', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField('描述', max_length=255, default='')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'product_parts_group'
+
+
+class PartsInfo(models.Model):
+    group = models.ForeignKey(PartsGroup, on_delete=models.CASCADE, verbose_name='配件组')
+
+    name = models.CharField('配件', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField('描述', max_length=255, default='')
+    max_available_qty = models.CharField('最大可用数量', default='1',max_length=255)
+    product = models.ForeignKey('ProductProduct', on_delete=models.CASCADE, verbose_name='所属产品', related_name='product_parts_list')
+    default_looks = models.ForeignKey('LooksInfo', on_delete=models.SET_NULL, verbose_name='默认外观', null=True, blank=True)
+    # 过滤
+    parts_uom = models.ForeignKey(BaseUnit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='配件默认数量单位')
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'product_parts_info'
+
+
+class LooksGroup(models.Model):
+    """
+    空白色板组
+    """
+    name = models.CharField('外观组', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField('描述', max_length=255, default='')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'product_looks_group'
+
+
+class LooksInfo(models.Model):
+    group = models.ForeignKey(LooksGroup, on_delete=models.CASCADE, verbose_name='外观组')
+    name = models.CharField('外观', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField('描述', max_length=255, default='')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-name']
+        db_table = 'product_looks_info'
+
+
+class PartsLooksMap(models.Model):
+    """
+    配件外观选配 包括主产品的外观
+    当只选择了产品 则产品下面的所有配件都有色板可选配
+    过滤条件  选配组类型为 色板的选配部件才可以 选配
+    """
+    name = models.CharField('选配名称', max_length=255, default='')
+
+    # 为产品所有的配件增加选配信息
+    parts_info = models.ForeignKey(PartsInfo, on_delete=models.CASCADE, null=True, blank=True, verbose_name='配件范围')
+
+    # 色板 色板组 二选一  /
+    looks_group = models.ForeignKey(LooksGroup, on_delete=models.CASCADE, null=True, blank=True, verbose_name='色板组')
+    looks_info = models.ForeignKey(
+        LooksInfo, on_delete=models.CASCADE,
+        null=True, blank=True, verbose_name='色板', related_name='map_looks_list'
+    )
+    exclude_looks_info = models.ForeignKey(
+        LooksInfo, on_delete=models.CASCADE,
+        null=True, blank=True, verbose_name='例外色板', related_name='map_exclude_looks_list'
+    )
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'product_parts_looks_map'
+
+
+class PartsLooksPriceList(models.Model):
+    name = models.CharField('选配定价单', max_length=255, default='')
+    code = models.CharField('编号', max_length=255, default='')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所属公司')
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, verbose_name='货币')
+
+    unit_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='单价数量单位')
+    parts = models.ForeignKey(PartsInfo, on_delete=models.CASCADE, verbose_name='所属配件')
+
+    date_start = models.DateField('开始日期', default=datetime.today)
+    date_end = models.DateField('结束日期', default=datetime.today)
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'prats_looks_price_list'
+
+
+class PartsLooksPriceItem(models.Model):
+    price_list = models.ForeignKey(PartsLooksPriceList, on_delete=models.CASCADE, verbose_name='价格单')
+
+    # 色板 色板组 二选一  /
+    looks_group = models.ForeignKey(LooksGroup, on_delete=models.CASCADE, null=True, blank=True, verbose_name='色板组')
+    looks_info = models.ForeignKey(LooksInfo, on_delete=models.CASCADE, null=True, blank=True, verbose_name='色板')
+
+    mark_price = models.CharField('产品标价(指导售价)', max_length=255, default='0')
+    sale_price = models.CharField('销售价格', max_length=255, default='0')
+    purchase_price = models.CharField('采购价格', max_length=255, default='0')
+    standard_price = models.CharField('成本价格', max_length=255, default='0')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.mark_price
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'prats_looks_price_item'
+
+
+# -----------------------------------------------------------------------------
+
+
+class ProductPacking(models.Model):
+    """用于存放选配后的产品 以便于以后快速选择 比如热销款式"""
+    name = models.CharField('包装名称', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField("选配描述", max_length=255)
+
+    pack_qty = models.CharField('套装数量', max_length=255, default='1')
+    pack_uom = models.ForeignKey(
+        BaseUnit, on_delete=models.SET_NULL, verbose_name='包装默认单位',
+        null=True, blank=True, related_name='packing_pack_uom_list'
+    )
+
+    product = models.ForeignKey(ProductProduct, on_delete=models.CASCADE, verbose_name='主产品')
+    product_uom = models.ForeignKey(
+        BaseUnit, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='产品单位', related_name='packing_product_uom_list'
+    )
+    product_qty = models.CharField('当前单位数量', max_length=255, default='1')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    def generate_special_code(self):
+        """生成特殊编码 用于验证一个选配是否与之相同"""
+        pass
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'product_packing'
+
+
+class ProductPackingList(models.Model):
+    packing = models.ForeignKey(ProductPacking, on_delete=models.CASCADE, related_name='packing_list')
+
+    parts = models.ForeignKey(PartsInfo, on_delete=models.CASCADE, verbose_name='配件')
+    parts_uom = models.ForeignKey(BaseUnit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='配件单位')
+    parts_qty = models.CharField('配件数量', max_length=255, default='1')
+    looks_info = models.ForeignKey(LooksInfo, on_delete=models.CASCADE, verbose_name='配件色板')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'product_packing_list'
