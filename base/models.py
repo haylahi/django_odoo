@@ -166,13 +166,15 @@ class Partner(models.Model):
     """
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True, verbose_name='所在公司', related_name='my_partner')
     name = models.CharField('合作伙伴', max_length=255)
-    code = models.CharField('唯一编码', max_length=255)
+    code = models.CharField('唯一编码', max_length=255, default='')
     desc = models.CharField('详细描述', max_length=255, default='')
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 
     tags = models.ManyToManyField('PartnerTag', blank=True, verbose_name='标签')
-    partner_level = models.CharField('客户等级', max_length=255, )
+    partner_level = models.CharField('客户等级', max_length=255, choices=CHOICES_PARTNER_LEVEL, default='E')
+
+    default_tax = models.ForeignKey('BaseTax', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='默认税')
 
     # 根据创建的场景去判断
     is_customer = models.BooleanField('是否是客户', default=False)
@@ -421,6 +423,7 @@ class Currency(models.Model):
         ordering = ['-name']
         db_table = 'base_currency'
 
+    # TODO 获取最新的汇率
     def compute_standard_total(self, total: str):
         rate = self.rates.all().last().rate
         _num = float(total) / 100 * float(rate)

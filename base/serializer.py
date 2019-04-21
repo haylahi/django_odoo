@@ -233,7 +233,9 @@ class CompanySerializer(serializers.ModelSerializer):
         company = super(CompanySerializer, self).create(attr)
         Partner.objects.create(
             company=company, name=company.name,
-            code=company.code, create_time=company.create_time, is_active=True
+            code=company.code, create_time=company.create_time,
+            default_tax=company.default_tax,
+            is_active=True
         )
         return company
 
