@@ -90,7 +90,6 @@ class ProductProduct(models.Model):
     brand = models.ForeignKey(ProductBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属品牌')
     category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属类别')
 
-    product_parts = models.ManyToManyField('ProductParts', blank=True, verbose_name='产品配件列表')
     product_display_rank = models.CharField('产品显示排序', default='', max_length=255)
 
     is_dummy_special_product = models.BooleanField('特殊定制？(虚拟)', default=False)
@@ -130,6 +129,62 @@ class ProductProduct(models.Model):
     class Meta:
         ordering = ['-name']
         db_table = 'product_product'
+
+
+class ProductPackage(models.Model):
+    name = models.CharField('包装名称', max_length=255)
+    code = models.CharField('编号', max_length=255, default='')
+    desc = models.CharField('描述', max_length=255, default='')
+
+    #  依赖于主产品
+    brand = models.ForeignKey(ProductBrand, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属品牌')
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='所属类别')
+
+    # 默认为主产品当时属性
+    product_type = models.CharField('产品属性', max_length=255, choices=CHOICES_PRODUCT_TYPE, default='STD')
+    product_usage_type = models.CharField('产品可使用属性', max_length=255, choices=CHOICES_PRODUCT_USAGE_TYPE, default='NORMAL')
+
+    product_volume = models.CharField('产品体积描述', max_length=255, default='')
+    product_weight = models.CharField('产品重量描述', max_length=255, default='')
+
+    can_sale = models.BooleanField('可以销售？', default=True)
+    can_purchase = models.BooleanField('可以采购？', default=True)
+    use_stock = models.BooleanField('使用库存？', default=True)
+    stock_tracking = models.CharField('产品库存追踪', max_length=255, choices=CHOICES_STOCK_TRACKING, default='LOT')
+
+    barcode = models.CharField('商品条码', max_length=255, default='')
+
+    package_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='包装单位', related_name='package_uoms')
+    set_number = models.CharField('包含套数', max_length=255, default='1')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='创建公司', related_name='my_packages')
+
+    product = models.ForeignKey(ProductProduct, on_delete=models.CASCADE, verbose_name='主产品')
+    product_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='主产品单位', related_name='package_product_uoms')
+    looks = models.ForeignKey('AppearanceItem', on_delete=models.CASCADE, verbose_name='主产品外观')
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        db_table = 'product_package'
+
+
+class ProductPackagePartsList(models.Model):
+    package = models.ForeignKey(ProductPackage, on_delete=models.CASCADE, related_name='package_parts_list')
+    parts = models.ForeignKey('ProductParts', on_delete=models.CASCADE, verbose_name='配件')
+    parts_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='配件单位')
+    parts_qty = models.CharField('配件数量', max_length=255, default='1')
+
+    def __str__(self):
+        return self.parts.name
+
+    class Meta:
+        ordering = ['package']
+        db_table = 'product_package_parts_list'
 
 
 # -----------------------------------------------------------------------------
@@ -240,7 +295,6 @@ class AppearanceMap(models.Model):
     need approve
     """
     product = models.ForeignKey(ProductProduct, on_delete=models.CASCADE, verbose_name='产品', related_name='own_appearance')
-
     looks_type = models.ForeignKey(AppearanceType, on_delete=models.CASCADE)
     looks_group = models.ForeignKey(AppearanceGroup, on_delete=models.CASCADE, null=True, blank=True)
     looks_items = models.ManyToManyField(AppearanceItem, blank=True, verbose_name='选配外观', related_name='looks_items_map')
@@ -276,6 +330,7 @@ class AppearanceItemPriceList(models.Model):
 class AppearanceItemPriceItem(models.Model):
     price_list = models.ForeignKey(AppearanceItemPriceList, on_delete=models.CASCADE, related_name='looks_items_price')
 
+    product = models.ForeignKey(ProductProduct, on_delete=models.CASCADE, verbose_name='对应产品', null=True, blank=True)
     looks_item = models.ForeignKey(AppearanceItem, on_delete=models.CASCADE, related_name='my_looks_price_items')
     unit_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='单价数量单位')
     rounding = models.CharField('精度', max_length=255, default='0.00')
@@ -319,6 +374,21 @@ class ProductParts(models.Model):
         db_table = 'product_parts'
 
 
+class ProductPartsMap(models.Model):
+    product = models.ForeignKey(ProductProduct, on_delete=models.CASCADE, related_name='my_parts_map')
+    parts_list = models.ManyToManyField(ProductParts, blank=True)
+
+    create_time = models.DateTimeField('创建时间', default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return '{} [的配件]'.format(self.product.name)
+
+    class Meta:
+        ordering = ['create_time']
+        db_table = 'product_parts_map'
+
+
 class ProductPartsPriceList(models.Model):
     name = models.CharField('配件价格单', max_length=255)
     code = models.CharField('编号', max_length=255, default='')
@@ -339,9 +409,9 @@ class ProductPartsPriceList(models.Model):
 
 
 class ProductPartsPriceItem(models.Model):
-    price_list = models.ForeignKey(ProductPartsPriceList, on_delete=models.CASCADE, related_name='parts_price')
+    price_list = models.ForeignKey(ProductPartsPriceList, on_delete=models.CASCADE, related_name='parts_price', verbose_name='配件价格单')
 
-    parts = models.ForeignKey(ProductParts, on_delete=models.CASCADE, related_name='parts_items')
+    parts = models.ForeignKey(ProductParts, on_delete=models.CASCADE, related_name='parts_items', verbose_name='配件')
     unit_uom = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, verbose_name='单价数量单位')
     rounding = models.CharField('精度', max_length=255, default='0.00')
 
