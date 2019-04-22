@@ -1,21 +1,19 @@
 import os
 import sys
 
-import djcelery
+# import djcelery
+#
+#
+# djcelery.setup_loader()
+#
+# BROKER_URL = 'amqp://admin:admin@localhost//'
+#
+# CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
 
-# -----------------------------------------------------------------------------
-
-djcelery.setup_loader()
-
-BROKER_URL = 'amqp://admin:admin@localhost//'
-
-CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# -----------------------------------------------------------------------------
-
-sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
+# sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
 
 SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
 
@@ -33,25 +31,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # myapp
-    'djcelery',
-    'channels',
     'rest_framework',
     'base',
-    'stock',
-    'account',
-    'orders',
-    'product',
-    'chat',
 ]
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -83,7 +74,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'powerful.wsgi.application'
 
-ASGI_APPLICATION = "powerful.routing.application"
+# ASGI_APPLICATION = "powerful.routing.application"
 
 DATABASES = {
     'default': {
@@ -123,14 +114,14 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework.authentication.BasicAuthentication',
-    #     'rest_framework.authentication.SessionAuthentication',
-    # )
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 10,
+#     # 'DEFAULT_AUTHENTICATION_CLASSES': (
+#     #     'rest_framework.authentication.BasicAuthentication',
+#     #     'rest_framework.authentication.SessionAuthentication',
+#     # )
+# }
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 
