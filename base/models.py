@@ -66,15 +66,14 @@ class BaseUnit(Model):
     name = CharField('单位', max_length=255)
     unit_symbol = CharField('单位符号', max_length=255)
     unit_type = CharField('单位类型', max_length=255, choices=CHOICES_UNIT_TYPE, default='UNIT')
+    is_active = BooleanField(default=True)
 
     is_base_unit = BooleanField('是否为基本单位', default=False)
     rounding = CharField('精度', max_length=255, default='0.00')
     factor = CharField('倍数', max_length=255, default='1')
     compute_method = CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_METHOD, default='std')
 
-    is_active = BooleanField(default=True)
-
-    def compute_base_unit(self):
+    def convert_to_base(self):
         pass
 
     def __str__(self):
@@ -93,8 +92,7 @@ class BaseUnit(Model):
 #     is_active = BooleanField(default=True)
 #
 #     def __str__(self):
-#         from base.utils import get_display_name
-#         return get_display_name(self.name, self.code)
+#         return self.name
 #
 #     class Meta:
 #         ordering = ['name', '-create_time']

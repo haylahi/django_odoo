@@ -9,8 +9,5 @@ class ProvinceListCreate(viewsets.ViewSet):
     """省份的创建和展示"""
 
 
-
-
-
 def base_test(request):
     return HttpResponse('<h2>200 OK</h2>', content_type='text/html', status=200)
