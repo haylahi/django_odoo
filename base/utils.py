@@ -4,8 +4,11 @@
 from django.contrib.auth.models import BaseUserManager
 
 
-def get_display_name(self, self_name, self_code):
-    pass
+def get_display_name(name, code):
+    if code == '':
+        return name
+    else:
+        return '{} ({})'.format(name, code)
 
 
 class MyUserManager(BaseUserManager):
