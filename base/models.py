@@ -5,6 +5,26 @@ from django.db.models import Model, CharField, BooleanField, DateTimeField
 
 from base.utils import MyUserManager
 
+"""
+Company
+
+
+
+"""
+
+
+class Company(Model):
+    # 空字符串不为 None
+    name = CharField('Company', max_length=255, default='')
+    code = CharField('Code', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name', '-create_time']
+        db_table = 'base_company'
+
 
 class BaseUser(AbstractBaseUser):
     username = CharField('Username', max_length=255, unique=True)
