@@ -125,7 +125,6 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     username = CharField('username', max_length=255, unique=True, validators=[UnicodeUsernameValidator()])
     email = CharField('email', max_length=255, default='')
     is_staff = BooleanField('staff', default=True)
-    is_admin = BooleanField(default=False)
 
     create_time = DateTimeField('创建时间', default=datetime.now)
     is_active = BooleanField(default=True)
