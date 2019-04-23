@@ -1,16 +1,16 @@
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.validators import UnicodeUsernameValidator
+# models
 from django.db.models import (
     Model, CharField, BooleanField,
     DateTimeField, ForeignKey, CASCADE, SET_NULL
 )
 
-from base.utils import MyUserManager
-
 # -----------------------------------------------------------------------------
-
+from base.utils import MyUserManager
 
 """
 Company
@@ -118,32 +118,24 @@ class Company(Model):
         db_table = 'base_company'
 
 
-class BaseUser(AbstractBaseUser):
+class BaseUser(AbstractBaseUser, PermissionsMixin):
+    """baseUser"""
     company = ForeignKey(Company, on_delete=CASCADE, null=True, blank=True, verbose_name='所属公司')
 
-    username = CharField('Username', max_length=255, unique=True)
-    email = CharField('Email', max_length=255, default='')
+    username = CharField('username', max_length=255, unique=True, validators=[UnicodeUsernameValidator()])
+    email = CharField('email', max_length=255, default='')
+    is_staff = BooleanField('staff', default=True)
     is_admin = BooleanField(default=False)
+
     create_time = DateTimeField('创建时间', default=datetime.now)
     is_active = BooleanField(default=True)
 
+    EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'username'
     objects = MyUserManager()
 
     def __str__(self):
         return self.username
-
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def has_perm(self, perm, obj=None):
-        return True
-
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def has_module_perms(self, app_label):
-        return True
-
-    @property
-    def is_staff(self):
-        return True
 
     class Meta:
         ordering = ['-create_time']

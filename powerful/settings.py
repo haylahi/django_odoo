@@ -30,10 +30,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # myapp
+    'guardian',
     'rest_framework',
     'base',
+    'permission',
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend'
+)
 
 # CHANNEL_LAYERS = {
 #     'default': {

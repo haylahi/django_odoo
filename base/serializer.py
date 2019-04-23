@@ -38,4 +38,5 @@ class BaseUnitSerializer(serializers.Serializer):
         return models.BaseUnit.objects.create(**attr)
 
     def update(self, obj: models.BaseUnit, attr: dict):
+        # TODO update logic
         return obj
