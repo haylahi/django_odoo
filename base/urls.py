@@ -6,7 +6,7 @@ from django.urls import path
 from base import views
 
 urlpatterns = [
-    path('unit/', views.UnitCreateListView.as_view({'get': 'show_unit_list'})),
+    path('unit/', views.UnitCreateListView.as_view({'get': 'show_unit_list', 'post': 'create_unit'})),
 
     path('test/', views.base_test),
 ]
