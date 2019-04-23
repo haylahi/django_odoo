@@ -1,7 +1,11 @@
 # author: Liberty
 # date: 2019/4/22 20:31
 
+import logging
+
 from django.contrib.auth.models import BaseUserManager
+
+__logger__ = logging.getLogger(__name__)
 
 
 class MyUserManager(BaseUserManager):
@@ -18,3 +22,12 @@ class MyUserManager(BaseUserManager):
         user.is_admin = True
         user.save(using=self._db)
         return user
+
+
+def check_float(val: str) -> bool:
+    try:
+        float(val)
+        return True
+    except ValueError as e:
+        __logger__.error(e)
+        return False

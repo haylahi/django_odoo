@@ -73,7 +73,10 @@ class BaseUnit(Model):
     factor = CharField('倍数', max_length=255, default='1')
     compute_method = CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_METHOD, default='std')
 
-    def convert_to_base(self):
+    def convert_base_unit(self, val):
+        pass
+
+    def convert_other_unit(self, other, val):
         pass
 
     def __str__(self):
