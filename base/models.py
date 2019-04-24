@@ -8,8 +8,10 @@ from django.db.models import (
     Model, CharField, BooleanField,
     DateTimeField, ForeignKey, CASCADE, SET_NULL
 )
-
 # -----------------------------------------------------------------------------
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from base.utils import MyUserManager
 
 """
@@ -119,7 +121,11 @@ class Company(Model):
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
-    """baseUser"""
+    """
+    BaseUser
+    TODO 重新设计用户的 Groups
+
+    """
     company = ForeignKey(Company, on_delete=CASCADE, null=True, blank=True, verbose_name='所属公司')
 
     username = CharField('username', max_length=255, unique=True, validators=[UnicodeUsernameValidator()])
@@ -139,3 +145,17 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         ordering = ['-create_time']
         db_table = 'base_user'
+
+
+@receiver(post_save, sender=BaseUser)
+def user_post_save(sender, **kwargs):
+    """
+    用户创建之后
+    :param sender: BaseUser
+    :param kwargs: created : 是否创建成功  instance: 当前实例
+    """
+    from django.conf import settings
+
+    user, created = kwargs['instance'], kwargs['created']
+    if created and user.username != settings.ANONYMOUS_USER_NAME:
+        print('xxxxx')
