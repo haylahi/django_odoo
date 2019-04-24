@@ -6,7 +6,8 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 # models
 from django.db.models import (
     Model, CharField, BooleanField,
-    DateTimeField, ForeignKey, CASCADE, SET_NULL
+    DateTimeField, ForeignKey,
+    CASCADE, SET_NULL
 )
 # -----------------------------------------------------------------------------
 from django.db.models.signals import post_save
@@ -123,7 +124,6 @@ class Company(Model):
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     """
     BaseUser
-    TODO 重新设计用户的 Groups
 
     """
     company = ForeignKey(Company, on_delete=CASCADE, null=True, blank=True, verbose_name='所属公司')
@@ -154,8 +154,4 @@ def user_post_save(sender, **kwargs):
     :param sender: BaseUser
     :param kwargs: created : 是否创建成功  instance: 当前实例
     """
-    from django.conf import settings
-
-    user, created = kwargs['instance'], kwargs['created']
-    if created and user.username != settings.ANONYMOUS_USER_NAME:
-        print('xxxxx')
+    print(sender, kwargs)

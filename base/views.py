@@ -26,10 +26,10 @@ class UnitCreateListView(viewsets.ViewSet):
 
 
 def base_test(request):
-    import random
-    User = models.BaseUser
-
-    username = str(random.randint(1, 10000))
-    User.objects.create(username=username)
+    # import random
+    # User = models.BaseUser
+    #
+    # username = str(random.randint(1, 10000))
+    # User.objects.create(username=username)
 
     return HttpResponse('<h2>200 OK</h2>', content_type='text/html', status=200)
