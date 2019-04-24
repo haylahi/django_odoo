@@ -5,19 +5,19 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
 # models
 from django.db.models import (
-    Model, CharField, BooleanField,
-    DateTimeField, ForeignKey,
-    CASCADE, SET_NULL
+    Model, CharField, BooleanField, IntegerField,
+    DateTimeField, ForeignKey, ManyToManyField,
+    CASCADE, SET_NULL, PROTECT
 )
-# -----------------------------------------------------------------------------
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 from base.utils import MyUserManager
 
+# -----------------------------------------------------------------------------
+
 """
 Company
-
+Tax
+Currency
 
 
 """
@@ -35,6 +35,8 @@ CHOICES_COMPUTE_METHOD = [
     ('divide', '除'),
 ]
 
+DEFAULT_COMPUTE_METHOD = 'std'
+
 
 # -----------------------------------------------------------------------------
 
@@ -49,13 +51,13 @@ class Province(Model):
 
     class Meta:
         ordering = ['name']
-        db_table = 'base_province'
 
 
 class BaseCity(Model):
     province = ForeignKey(Province, on_delete=CASCADE, verbose_name='所在省份', related_name='cities')
     name = CharField('城市', max_length=255)
     area_code = CharField('城市区号', max_length=255)
+    is_municipality = BooleanField(default=False, verbose_name='直辖市')
     is_active = BooleanField(default=True)
 
     def __str__(self):
@@ -63,7 +65,6 @@ class BaseCity(Model):
 
     class Meta:
         ordering = ['name']
-        db_table = 'base_city'
 
 
 class BaseUnit(Model):
@@ -75,11 +76,10 @@ class BaseUnit(Model):
     is_base_unit = BooleanField('是否为基本单位', default=False)
     rounding = CharField('精度', max_length=255, default='0.00')
     factor = CharField('倍数', max_length=255, default='1')
-    compute_method = CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_METHOD, default='std')
+    compute_method = CharField('计算方式', max_length=255, choices=CHOICES_COMPUTE_METHOD, default=DEFAULT_COMPUTE_METHOD)
 
     def convert_base_unit(self, val: str):
         """将其他单位转换为标准单位的结果"""
-
         origin_num = Decimal()
         if self.compute_method == 'std':
             origin_num = Decimal(val)
@@ -96,7 +96,34 @@ class BaseUnit(Model):
     class Meta:
         unique_together = ('unit_type', 'is_base_unit')
         ordering = ['unit_type', 'name']
-        db_table = 'base_unit'
+
+
+class Sequence(Model):
+    """
+    序列号规则
+    TODO 生成下一个序列号
+
+    """
+    name = CharField('序列号名称', max_length=255)
+    code = CharField('指定编码', max_length=255, unique=True)
+
+    padding = IntegerField('填充长度', default=5)
+    step_len = IntegerField('步长', default=1)
+    next_number = IntegerField('下个序列号', default=1)
+
+    suffix = CharField('后缀', max_length=255, default='')
+    prefix = CharField('前缀', max_length=255, default='')
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    def __str__(self):
+        return '{} [{}]'.format(self.name, self.code)
+
+    class Meta:
+        ordering = ['name']
+
+
+# -----------------------------------------------------------------------------
 
 
 class Company(Model):
@@ -118,7 +145,39 @@ class Company(Model):
 
     class Meta:
         ordering = ['name', '-create_time']
-        db_table = 'base_company'
+
+
+class Department(Model):
+    company = ForeignKey(Company, on_delete=CASCADE, verbose_name='所在公司', related_name='company_departments')
+    name = CharField('部门名称', max_length=255)
+    code = CharField('Code', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
+class BaseJob(Model):
+    """
+    职位
+    职位类别 管理 技术 。。。  职位技能需求
+    """
+    name = CharField('职称', max_length=255)
+    code = CharField('Code', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
@@ -126,7 +185,10 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     BaseUser
 
     """
-    company = ForeignKey(Company, on_delete=CASCADE, null=True, blank=True, verbose_name='所属公司')
+    company = ForeignKey(Company, on_delete=CASCADE, null=True, blank=True, verbose_name='所属公司', related_name='company_users')
+    department = ForeignKey(Department, on_delete=CASCADE, null=True, blank=True, verbose_name='所属部门', related_name='department_users')
+    # 当职位下还有用户时不能删除
+    job = ForeignKey(BaseJob, on_delete=PROTECT, null=True, blank=True, verbose_name='职称')
 
     username = CharField('username', max_length=255, unique=True, validators=[UnicodeUsernameValidator()])
     email = CharField('email', max_length=255, default='')
@@ -134,6 +196,11 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
     create_time = DateTimeField('创建时间', default=datetime.now)
     is_active = BooleanField(default=True)
+
+    # ################## 个人信息 #####################
+
+    # ################## 工作信息 #####################
+    is_department_manager = BooleanField(default=False, verbose_name='部门经理')
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'username'
@@ -143,15 +210,21 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     class Meta:
+        ordering = ['username', '-create_time']
+
+
+class UserOperationLog(Model):
+    user = ForeignKey(BaseUser, on_delete=CASCADE, verbose_name='所属用户', related_name='user_op_logs')
+    app_name = CharField('所在app名称', max_length=255)
+    model_name = CharField('操作的模型', max_length=255)
+    model_id = CharField('操作模型的id', max_length=255)
+    content = CharField('操作内容', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    def __str__(self):
+        return '{}--{}({})'.format(self.user, self.model_name, self.model_id)
+
+    class Meta:
         ordering = ['-create_time']
-        db_table = 'base_user'
-
-
-@receiver(post_save, sender=BaseUser)
-def user_post_save(sender, **kwargs):
-    """
-    用户创建之后
-    :param sender: BaseUser
-    :param kwargs: created : 是否创建成功  instance: 当前实例
-    """
-    print(sender, kwargs)

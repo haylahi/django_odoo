@@ -47,7 +47,6 @@ class Task(models.Model):
 
     class Meta:
         ordering = ['summary', '-create_time']
-        db_table = 'test_task'
         permissions = (
             ('view_task', '查看任务'),
         )
