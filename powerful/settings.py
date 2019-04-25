@@ -1,5 +1,6 @@
 import os
-import sys
+
+# import sys
 
 # import djcelery
 #
@@ -35,6 +36,8 @@ INSTALLED_APPS = [
     'base',
     # 'permission',
     'product',
+    'stock',
+    'account',
 ]
 
 AUTHENTICATION_BACKENDS = (

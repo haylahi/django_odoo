@@ -35,6 +35,11 @@ DEFAULT_PRODUCT_SALE_TYPE = 'normal'
 
 # -------------------------------------------------------------------------------------
 
+
+def _get_default_name():
+    return 'ProductPriceList{r:0<4d}'.format(r=random.randint(1, 9999))
+
+
 class ProductBrand(models.Model):
     """品牌"""
     name = models.CharField('品牌', max_length=255)
@@ -99,7 +104,7 @@ class Product(models.Model):
 
     name = models.CharField('产品名称', max_length=255)
     code = models.CharField('代号', max_length=255, default='')
-    desc = models.CharField('产品详细描述', max_length=255, default='')
+    description = models.CharField('产品详细描述', max_length=255, default='')
     barcode = models.CharField('商品条码', max_length=255, default='')
 
     product_rank = models.IntegerField('产品热度', default=1)
@@ -127,7 +132,7 @@ class Product(models.Model):
 
 class ProductPriceList(models.Model):
     """需要审核"""
-    name = models.CharField('产品价格单', max_length=255, default='ProductPriceList{r:0<4d}'.format(r=random.randint(1, 9999)))
+    name = models.CharField('产品价格单', max_length=255, default=_get_default_name)
     company = models.ForeignKey(Company, on_delete=models.PROTECT, verbose_name='所属公司')
     product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name='所属产品', related_name='product_price_list')
 

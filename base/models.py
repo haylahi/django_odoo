@@ -125,6 +125,20 @@ class Sequence(Model):
 
 # -----------------------------------------------------------------------------
 
+class Partner(Model):
+    name = CharField('合作伙伴名称', max_length=255)
+    code = CharField('Code', max_length=255, default='')
+    description = CharField('描述', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
 
 class Company(Model):
     name = CharField('Company', max_length=255)
