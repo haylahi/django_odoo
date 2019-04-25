@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'guardian',
     'rest_framework',
     'base',
-    'permission',
+    # 'permission',
+    'product',
 ]
 
 AUTHENTICATION_BACKENDS = (

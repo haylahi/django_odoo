@@ -7,6 +7,18 @@ from django.contrib.auth.models import BaseUserManager
 
 __logger__ = logging.getLogger(__name__)
 
+ORDER_STATE = [
+    ('cancel', '取消'),
+    ('draft', '草稿'),
+    ('submitted', '提交审核后'),
+    ('in_review', '审核中'),
+    ('completed', '审核完成'),
+    ('done', '单据完成'),
+    ('locked', '锁定')
+]
+
+DEFAULT_STATE = 'draft'
+
 
 class MyUserManager(BaseUserManager):
     def _create_user(self, username, password, **extra_fields):

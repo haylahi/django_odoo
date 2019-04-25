@@ -6,7 +6,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 # models
 from django.db.models import (
     Model, CharField, BooleanField, IntegerField,
-    DateTimeField, ForeignKey, ManyToManyField,
+    DateTimeField, ForeignKey,
     CASCADE, SET_NULL, PROTECT
 )
 
