@@ -42,7 +42,7 @@ class StockWarehouse(models.Model):
 
 
 class StockLocation(models.Model):
-    """内部位置的库存可以存到仓库"""
+    """内部位置"""
     company = models.ForeignKey(Company, on_delete=models.CASCADE, verbose_name='所属公司', related_name='company_location')
     loc_type = models.CharField('位置类型', max_length=255, choices=CHOICES_LOCATION_TYPE, default=DEFAULT_LOCATION_TYPE)
 

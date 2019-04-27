@@ -4,6 +4,7 @@
 import json
 import logging
 import platform
+from datetime import datetime, date
 from pathlib import WindowsPath, PurePosixPath
 
 from django.contrib.auth.models import BaseUserManager
@@ -74,6 +75,7 @@ def check_float(val: str) -> bool:
 
 
 def get_model_files(model_obj):
+    # noinspection PyProtectedMember
     app_label, model_name = model_obj._meta.app_label, \
                             model_obj._meta.model_name
     model_id = model_obj.id
@@ -82,6 +84,21 @@ def get_model_files(model_obj):
         model_name=model_name, model_id=model_id
     )
     return _ret
+
+
+def get_field_dict(model_obj):
+    _fields = []
+    for f in model_obj._meta.fields:
+        _fields.append(f.name)
+    _d = {}
+    for attr in _fields:
+        if isinstance(getattr(model_obj, attr), datetime):
+            _d[attr] = getattr(model_obj, attr).strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(getattr(model_obj, attr), date):
+            _d[attr] = getattr(model_obj, attr).strftime('%Y-%m-%d')
+        else:
+            _d[attr] = getattr(model_obj, attr)
+    return _d
 
 
 def create_file(path, content):

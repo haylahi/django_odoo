@@ -2,6 +2,8 @@ import os
 
 import djcelery
 
+# celery config
+
 djcelery.setup_loader()
 
 BROKER_URL = 'amqp://admin:admin@localhost//'
@@ -33,6 +35,7 @@ INSTALLED_APPS = [
     'guardian',
     'rest_framework',
     'base',
+    # 'workflow',
     'product',
     'stock',
     'account',
