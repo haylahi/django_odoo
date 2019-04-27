@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'guardian',
     'rest_framework',
     'base',
-    # 'workflow',
     'product',
     'stock',
     'account',
