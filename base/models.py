@@ -249,7 +249,10 @@ class UserOperationLog(Model):
 
 
 class FileObject(Model):
-    """一个文件附件就是一个文件对象"""
+    """
+    一个文件附件就是一个文件对象
+    开启开关 --> can_upload_file
+    """
     app_label = CharField('所属APP', max_length=255, default='')
     model_name = CharField('所属模型', max_length=255, default='')
     # 适用与某个对象的字段 如图片字段取最新字段 或者把 值赋给 对象的字段中去

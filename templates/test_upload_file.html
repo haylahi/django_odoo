@@ -31,7 +31,6 @@
         if ($input[0].files[0] && $input[0].files[0].size <= MAX_FILE_SIZE) {
             reader.readAsDataURL($input[0].files[0]);
             reader.onload = function (e) {
-                console.log($input[0].files[0]);
                 attr.fFileName = $input[0].files[0].name;
                 attr.fFIleData = e.target.result;
                 attr.fFileType = $input[0].files[0].type;

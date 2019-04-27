@@ -3,9 +3,9 @@
 
 import json
 import logging
-from pathlib import WindowsPath, PurePosixPath
 import platform
-
+from pathlib import WindowsPath, PurePosixPath
+from . import models
 from django.contrib.auth.models import BaseUserManager
 
 __logger__ = logging.getLogger(__name__)
@@ -62,6 +62,26 @@ def make_correct_path(root_path, file_path):
         return path
 
 
+def check_float(val: str) -> bool:
+    try:
+        float(val)
+        return True
+    except ValueError as e:
+        __logger__.error(e)
+        return False
+
+
+def get_model_files(model_obj):
+    app_label, model_name = model_obj._meta.app_label, \
+                            model_obj._meta.model_name
+    model_id = model_obj.id
+    _ret = models.FileObject.objects.filter(
+        is_active=True, app_label=app_label,
+        model_name=model_name, model_id=model_id
+    )
+    return _ret
+
+
 class MyUserManager(BaseUserManager):
     def _create_user(self, username, password, **extra_fields):
         if not username:
@@ -85,12 +105,3 @@ class MyUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
         return self._create_user(username, password, **extra_fields)
-
-
-def check_float(val: str) -> bool:
-    try:
-        float(val)
-        return True
-    except ValueError as e:
-        __logger__.error(e)
-        return False

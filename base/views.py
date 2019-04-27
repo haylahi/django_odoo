@@ -4,25 +4,29 @@ import base64
 import os
 
 from django.apps import apps
+from django.conf import settings
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from django.conf import settings
-
-from base.utils import make_error_resp, make_success_resp, json, generate_random_code, make_correct_path
+from base.utils import (
+    make_error_resp, make_success_resp, json,
+    generate_random_code, make_correct_path,
+    get_model_files)
 from . import models
 from . import serializer as s
 
 
 class UnitCreateListView(viewsets.ViewSet):
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def show_unit_list(self, request, *args, **kwargs):
         # TODO 分页
         result = models.BaseUnit.objects.filter(is_active=True)
         serializer = s.BaseUnitSerializer(result, many=True)
         return Response(serializer.data)
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def create_unit(self, request, *args, **kwargs):
         serializer = s.BaseUnitSerializer(data=request.data)
         if serializer.is_valid():
@@ -46,6 +50,7 @@ class UploadFileView(viewsets.ViewSet):
 
     """
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def upload_file(self, request, *args, **kwargs):
         # TODO 判断逻辑问题 传入值的问题  null '' Nan ...
         user_token, front_data = request.data.get('token', None), request.data.get('data', None)
@@ -54,14 +59,11 @@ class UploadFileView(viewsets.ViewSet):
                 json_data = json.loads(front_data)
             except Exception as e:
                 _msg = 'UserError: request body\'s data error: {e}'.format(e=e)
-                _ret = make_error_resp(_msg)
-                return Response(_ret)
+                return Response(make_error_resp(_msg))
 
             if not (json_data.get('fFileName') and json_data.get('fFileType') and json_data.get('fFIleData')):
                 _msg = 'UserError: request body data error'
-                _ret = make_error_resp(_msg)
-                return Response(_ret)
-
+                return Response(make_error_resp(_msg))
             # 尝试 base64 解码
             _b64 = json_data.get('fFIleData')
             if ',' in _b64:
@@ -70,15 +72,13 @@ class UploadFileView(viewsets.ViewSet):
                 base64.b64decode(_b64)
             except Exception as e:
                 _msg = 'UserError: {e}'.format(e=e)
-                _ret = make_error_resp(_msg)
-                return Response(_ret)
+                return Response(make_error_resp(_msg))
 
             _front_file_name = json_data.get('fFileName')
             _file_suffix = os.path.splitext(_front_file_name)[1]
             if _file_suffix == '':
                 _msg = 'UserError: request body data error'
-                _ret = make_error_resp(_msg)
-                return Response(_ret)
+                return Response(make_error_resp(_msg))
 
             # 获取一个随机的文件名
             _f = generate_random_code()
@@ -98,25 +98,21 @@ class UploadFileView(viewsets.ViewSet):
                     model_object = apps.get_model(fApp, fModel)
                 except Exception as e:
                     _msg = 'UserError: {e}'.format(e=e)
-                    _ret = make_error_resp(_msg)
-                    return Response(_ret)
+                    return Response(make_error_resp(_msg))
 
                 if fId:
                     try:
                         int(fId)
                     except Exception as e:
                         _msg = 'UserError: {e}'.format(e=e)
-                        _ret = make_error_resp(_msg)
-                        return Response(_ret)
+                        return Response(make_error_resp(_msg))
                     exist_tag = model_object.objects.filter(is_active=True, id=fId).exists()
                     if exist_tag is False:
                         _msg = 'Error: 404 Not Found'
-                        _ret = make_error_resp(_msg)
-                        return Response(_ret)
+                        return Response(make_error_resp(_msg))
                 else:
                     _msg = 'Error: if app and model exists, then id is required'
-                    _ret = make_error_resp(_msg)
-                    return Response(_ret)
+                    return Response(make_error_resp(_msg))
 
                 # 保存图片 make-path
                 file_object_path = '{app}/{model}/{file}'.format(app=fApp, model=fModel, file=file_object_path)
@@ -129,11 +125,11 @@ class UploadFileView(viewsets.ViewSet):
 
                 if fField:
                     try:
+                        # noinspection PyProtectedMember
                         model_object._meta.get_field(fField)
                     except Exception as e:
                         _msg = 'UserError: {e}'.format(e=e)
-                        _ret = make_error_resp(_msg)
-                        return Response(_ret)
+                        return Response(make_error_resp(_msg))
                     file_object_attr.update({'model_field': fField})
 
             # ------------------- 检查完成 ----------------------------------------------
@@ -145,16 +141,18 @@ class UploadFileView(viewsets.ViewSet):
 
             with open(str(_path), 'wb') as f:
                 f.write(base64.b64decode(_b64))
+                # TODO celery 任务
                 models.FileObject.objects.create(**file_object_attr)
-
-            _ret = make_success_resp()
-            return Response(_ret)
-
+                _ret = make_success_resp()
+                return Response(_ret)
+        # if user_token and front_data:
         else:
             _msg = 'UserError: request body error.'
-            _ret = make_error_resp(_msg)
-            return Response(_ret)
+            return Response(make_error_resp(_msg))
 
 
 def base_test(request):
+    obj = models.Province.objects.get(pk=1)
+    ret = get_model_files(obj)
+    print(ret)
     return HttpResponse('<h2>200 OK</h2>', content_type='text/html', status=200)
