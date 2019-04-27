@@ -227,18 +227,48 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         ordering = ['username', '-create_time']
 
 
+# -----------------------------------------------------------------------------
+
+
 class UserOperationLog(Model):
     user = ForeignKey(BaseUser, on_delete=CASCADE, verbose_name='所属用户', related_name='user_op_logs')
     app_name = CharField('所在app名称', max_length=255)
     model_name = CharField('操作的模型', max_length=255)
     model_id = CharField('操作模型的id', max_length=255)
     content = CharField('操作内容', max_length=255, default='')
+    result = CharField('操作结果', max_length=255, default='')
 
     create_time = DateTimeField('创建时间', default=datetime.now)
     is_active = BooleanField(default=True)
 
     def __str__(self):
         return '{}--{}({})'.format(self.user, self.model_name, self.model_id)
+
+    class Meta:
+        ordering = ['-create_time']
+
+
+class FileObject(Model):
+    """一个文件附件就是一个文件对象"""
+    app_label = CharField('所属APP', max_length=255, default='')
+    model_name = CharField('所属模型', max_length=255, default='')
+    # 适用与某个对象的字段 如图片字段取最新字段 或者把 值赋给 对象的字段中去
+    model_field = CharField('所属字段', max_length=255, default='')
+    model_id = CharField('所属对象ID', max_length=255, default='')
+
+    file_name = CharField('原始文件名', max_length=255)
+    file_suffix = CharField('文件后缀名', max_length=255, default='.txt', help_text='保存形式为 xxx.txt')
+    file_path = CharField('文件相对路径', max_length=255, unique=True)
+    file_coding = CharField('文件编码格式', max_length=255, default='utf8')
+    file_type = CharField('文件类型', max_length=255, default='')
+
+    create_time = DateTimeField('创建时间', default=datetime.now)
+    is_active = BooleanField(default=True)
+
+    # -------------------------------------------------------------------------
+
+    def __str__(self):
+        return self.file_name
 
     class Meta:
         ordering = ['-create_time']

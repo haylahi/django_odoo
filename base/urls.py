@@ -7,6 +7,7 @@ from base import views
 
 urlpatterns = [
     path('unit/', views.UnitCreateListView.as_view({'get': 'show_unit_list', 'post': 'create_unit'})),
+    path('upload/', views.UploadFileView.as_view({'post': 'upload_file'})),
 
     path('test/', views.base_test),
 ]

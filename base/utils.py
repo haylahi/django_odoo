@@ -1,7 +1,10 @@
 # author: Liberty
 # date: 2019/4/22 20:31
 
+import json
 import logging
+from pathlib import WindowsPath, PurePosixPath
+import platform
 
 from django.contrib.auth.models import BaseUserManager
 
@@ -18,6 +21,45 @@ ORDER_STATE = [
 ]
 
 DEFAULT_STATE = 'draft'
+
+SEND_SUCCESS_DATA = {
+    'code': '0',
+    'message': 'success.',
+}
+
+SEND_ERROR_DATA = {
+    'code': '1',
+    'message': 'error.'
+}
+
+
+def make_success_resp():
+    return json.dumps(SEND_SUCCESS_DATA)
+
+
+def make_error_resp(message: str = None):
+    if message is not None:
+        _d = SEND_ERROR_DATA.update({'message': message})
+    return json.dumps(SEND_ERROR_DATA)
+
+
+def generate_random_code():
+    import time
+    import hashlib
+    import random
+    m = hashlib.md5(str(time.clock()).encode('utf8'))
+    m = m.hexdigest()
+    r = random.randint(0, 999999)
+    return '{r:0>6d}{m}'.format(r=r, m=m)
+
+
+def make_correct_path(root_path, file_path):
+    if platform.system() == 'Windows':
+        path = WindowsPath(root_path).joinpath(file_path)
+        return path
+    else:
+        path = PurePosixPath(root_path).joinpath(file_path)
+        return path
 
 
 class MyUserManager(BaseUserManager):
