@@ -1,16 +1,12 @@
 import os
 
-# import sys
+import djcelery
 
-# import djcelery
-#
-#
-# djcelery.setup_loader()
-#
-# BROKER_URL = 'amqp://admin:admin@localhost//'
-#
-# CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
+djcelery.setup_loader()
 
+BROKER_URL = 'amqp://admin:admin@localhost//'
+
+CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -32,11 +28,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'djcelery',
     'corsheaders',
     'guardian',
     'rest_framework',
     'base',
-    # 'permission',
     'product',
     'stock',
     'account',

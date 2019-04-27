@@ -1,5 +1,6 @@
 # author: Liberty
 # date: 2019/4/22 20:51
+
 import base64
 import os
 
@@ -13,9 +14,11 @@ from rest_framework.response import Response
 from base.utils import (
     make_error_resp, make_success_resp, json,
     generate_random_code, make_correct_path,
-    get_model_files)
+    create_file
+)
 from . import models
 from . import serializer as s
+from . import tasks
 
 
 class UnitCreateListView(viewsets.ViewSet):
@@ -134,17 +137,23 @@ class UploadFileView(viewsets.ViewSet):
 
             # ------------------- 检查完成 ----------------------------------------------
 
-            _path = make_correct_path(settings.MEDIA_ROOT, file_object_path)
-            _dir = os.path.dirname(str(_path))
+            _path = str(make_correct_path(settings.MEDIA_ROOT, file_object_path))
+            _dir = os.path.dirname(_path)
             if not os.path.exists(_dir):
                 os.makedirs(_dir)
+            _b64 = base64.b64decode(_b64)
 
-            with open(str(_path), 'wb') as f:
-                f.write(base64.b64decode(_b64))
-                # TODO celery 任务
-                models.FileObject.objects.create(**file_object_attr)
-                _ret = make_success_resp()
-                return Response(_ret)
+            try:
+                res = tasks.tasks_create_file.delay('create-file', path=_path, content=_b64)
+                res.get(timeout=1)
+                print('--> celery task success')
+            except:
+                create_file(_path, _b64)
+                print('create file success')
+
+            models.FileObject.objects.create(**file_object_attr)
+            _ret = make_success_resp()
+            return Response(_ret)
         # if user_token and front_data:
         else:
             _msg = 'UserError: request body error.'
@@ -152,7 +161,4 @@ class UploadFileView(viewsets.ViewSet):
 
 
 def base_test(request):
-    obj = models.Province.objects.get(pk=1)
-    ret = get_model_files(obj)
-    print(ret)
     return HttpResponse('<h2>200 OK</h2>', content_type='text/html', status=200)

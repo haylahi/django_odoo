@@ -5,8 +5,10 @@ import json
 import logging
 import platform
 from pathlib import WindowsPath, PurePosixPath
-from . import models
+
 from django.contrib.auth.models import BaseUserManager
+
+from . import models
 
 __logger__ = logging.getLogger(__name__)
 
@@ -80,6 +82,11 @@ def get_model_files(model_obj):
         model_name=model_name, model_id=model_id
     )
     return _ret
+
+
+def create_file(path, content):
+    with open(path, 'wb') as f:
+        f.write(content)
 
 
 class MyUserManager(BaseUserManager):
