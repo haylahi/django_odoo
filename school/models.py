@@ -254,18 +254,40 @@ class Examination(models.Model):
 
     def create_score_record(self):
         """
-        创建考试记录为每个学生
-
+        创建考试记录为每个学生 返回成功或者失败
         """
+        if self.is_create_record is True:
+            __logger__.error('Warn: 你已经为该考试创建了成绩记录了.')
+            return False
+        else:
+            _class = self.course_map.base_class
+            # 准备数据
+            _students = _class.class_students.all().filter(is_active=True)  # list or None
+            _date_now = datetime.now()  # datetime
+            _full_mark = self.course_map.material.full_score_tag  # str
+            _create_teacher = self.read_teacher  # obj or None 理论不为空
 
-        _class = self.course_map.base_class
-        # 准备数据
-        _students = _class.class_students.all().filter(is_active=True)  # list or None
-        _date_now = datetime.now()  # datetime
-        _full_mark = self.course_map.material.full_score_tag  # str
-        _create_teacher = self.read_teacher  # obj or None
-
-        # 创建任务
+            # 创建任务 判断 学生列表的长度
+            if len(_students) > 0:
+                from . import tasks
+                _task_name = 'create_score_tasks_{}'.format(_date_now.strftime('%Y_%m_%d_%H_%M_%S'))
+                _attr = {
+                    'examination': self,
+                    'student_list': _students,
+                    'full_score_tag': _full_mark,
+                    'create_time': _date_now,
+                    'create_teacher': _create_teacher
+                }
+                try:
+                    res = tasks.create_score_records.delay(_task_name, **_attr)
+                    _bool = res.get(timeout=10)
+                    return _bool
+                except Exception as e:
+                    __logger__.error('Error: {}'.format(e))
+                    return False
+            else:
+                __logger__.error('Warn: no student to create score record.')
+                return False
 
 
 class ScoreRecord(models.Model):
@@ -278,9 +300,10 @@ class ScoreRecord(models.Model):
     student = models.ForeignKey('Student', on_delete=models.PROTECT, verbose_name='考试学生', related_name='student_test_records')
 
     full_score_tag = models.CharField('满分', max_length=255, default='100')
+    real_score = models.CharField('实际分数', max_length=255, default='')
 
     #  67.9
-    score = models.CharField('分数', max_length=255, default='')
+    score = models.CharField('分数(100值)', max_length=255, default='')
     score_level = models.CharField('得分等级', max_length=255, default='')
     # 根据分数
     grade_point = models.CharField('获得绩点', max_length=255, default='')
@@ -290,7 +313,7 @@ class ScoreRecord(models.Model):
     is_joined = models.BooleanField('是否参加考试', default=True)
     is_passed = models.BooleanField('是否通过考试', default=True)
 
-    # 默认为自己的任课老师
+    # 默认为阅卷老师
     create_teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT)
     create_time = models.DateTimeField(default=datetime.now)
     is_active = models.BooleanField(default=True)

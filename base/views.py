@@ -145,8 +145,8 @@ class UploadFileView(viewsets.ViewSet):
 
             # FIXME 修改这里的逻辑 可能会出现重复创建的情况
             try:
-                res = tasks.tasks_create_file.delay('create-file', path=_path, content=_b64)
-                res.get(timeout=1)
+                res = tasks.tasks_create_file.delay('create_file', path=_path, content=_b64)
+                res.get(timeout=0.5)
                 print('--> celery task success')
             except:
                 create_file(_path, _b64)

@@ -14,15 +14,39 @@ import django
 
 django.setup()
 
-from school import models
+from . import models
 
 
 # noinspection PyCallingNonCallable
 @task
-def create_new_record(task_name, **kwargs):
+def create_score_records(task_name, **kwargs):
+    """创建学生成绩表"""
     __logger__.info('start celery task {}'.format(task_name))
 
-    ret = models.Student.objects.all()
-    __logger__.info(ret)
+    # 1. 获取数据
+    examination = kwargs.get('examination')
+    student_list = kwargs.get('student_list')
+    full_score_tag = kwargs.get('full_score_tag')
+    create_time = kwargs.get('create_time')
+    create_teacher = kwargs.get('create_teacher')
 
-    return 'success'
+    # 2. 准备数据
+    _record_obj_list = []
+    for stu in student_list:
+        attr = {
+            'examination': examination,
+            'student': stu,
+            'full_score_tag': full_score_tag,
+            'create_teacher': create_teacher,
+            'create_time': create_time,
+            'is_active': True
+        }
+        _record_obj_list.append(models.ScoreRecord(**attr))
+    ret = models.ScoreRecord.objects.bulk_create(_record_obj_list)
+    if len(ret) == len(student_list):
+        # 3. 更改 examination is_create_record
+        examination.is_create_record = True
+        examination.save()
+        return True
+    else:
+        return False
