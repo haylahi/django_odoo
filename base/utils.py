@@ -39,6 +39,7 @@ FRONT_DISPLAY_STR = 'display'
 FRONT_LABEL_STR = 'label'
 FRONT_TYPE_STR = 'type'
 FRONT_PRIMARY_KEY_STR = 'primary_key'
+FRONT_EDITABLE_STR = 'editable'
 
 
 def make_success_resp():
@@ -119,7 +120,7 @@ def _generate_index_dict(index):
     }
 
 
-def _generate_field_dict(obj, field_name: str):
+def _generate_field_dict(obj, field_name: str, editable=None):
     """
     char         str
     fk           object
@@ -131,7 +132,7 @@ def _generate_field_dict(obj, field_name: str):
     date         date
     choices      multi       select_list
     id           int
-
+    method       method
     """
     _d = dict()
     _f_obj = obj._meta.get_field(field_name)
@@ -191,11 +192,14 @@ def _generate_field_dict(obj, field_name: str):
         _d[FRONT_PRIMARY_KEY_STR] = '1'
 
     # TODO m2m o2m
+    if editable is not None:
+        if field_name in editable:
+            _d[FRONT_EDITABLE_STR] = '1'
 
     return _d
 
 
-def generate_front_list(obj_list, field_list, index_tag=False) -> list:
+def generate_front_list(obj_list, field_list, editable: list = None, index_tag=False) -> list:
     _obj_list, _field_list, _li = obj_list, field_list, list()
     if _obj_list is None:
         return []

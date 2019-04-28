@@ -5,8 +5,8 @@
 
 
     <div class="row">
-
-        <h2>Create or View all Examination</h2>
+        {% get_model_verbose_name model_object as MODEL_VERBOSE_NAME %}
+        <h2>Create or View all <b>{{ MODEL_VERBOSE_NAME }}</b></h2>
 
         {% if model_data %}
             {% check_front_index model_data as TAG_FRONT_INDEX %}
@@ -15,27 +15,34 @@
                 <thead>
                 <tr>
                     {% if TAG_FRONT_INDEX %}
-                        <td><b>{% get_index_label model_data %}</b></td>
+                        <th>{% get_index_label model_data %}</th>
                     {% endif %}
+
                     {% generate_table_headers model_object model_fields %}
                 </tr>
                 </thead>
-
                 <tbody>
                 {% for model_one in model_data %}
-                    <tr>
-                        {% if TAG_FRONT_INDEX %}
-                            <th>{% get_index_display model_one %}</th>
-                        {% endif %}
-                        {% for field in model_fields %}
-                            <th>{% get_display_str model_one field %}</th>
-                        {% endfor %}
-                    </tr>
+                    {% if model_colorful_field %}
+                        {% compute_colorful_table_body model_one model_colorful_field %}
+                    {% else %}
+                        <tr>
+                    {% endif %}
+
+                {% if TAG_FRONT_INDEX %}
+                    <td>{% get_index_display model_one %}</td>
+                {% endif %}
+
+                {% for field in model_fields %}
+                    <td>{% get_display_str model_one field %}</td>
+                {% endfor %}
+                </tr>
                 {% endfor %}
                 </tbody>
             </table>
+            <h4 id="DataCount" style="text-align: right"></h4>
         {% else %}
-            <h3>Not <b>{% get_model_verbose_name model_object %}</b> Data</h3>
+            <h3>Not <b>{{ MODEL_VERBOSE_NAME }}</b> Data</h3>
         {% endif %}
     </div>
 
@@ -53,6 +60,8 @@
             //     }
             // })
             var modelCount = `{{ model_data | length }}`;
+            var TAG_P = $('#DataCount')[0];
+            TAG_P.innerHTML = `一共 <b>` + modelCount + '</b> 条数据';
         });
     </script>
 {% endblock %}

@@ -18,5 +18,6 @@ urlpatterns = [
     path('student/', views.StudentListCreateView.as_view()),
     # ----------------------------------------------------------
     path('html/examination/', views.html_examination),
+    path('html/score/', views.html_score_list),
     path('real/test/', views.real_test),
 ]

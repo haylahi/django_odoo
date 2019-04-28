@@ -11,8 +11,10 @@ from base.utils import FRONT_INDEX_STR, FRONT_DISPLAY_STR, FRONT_LABEL_STR
 register = template.Library()
 _log = logging.getLogger(__name__)
 
-STR_HEADER_SEQUENCE = """<td><b>No.</b></td>"""
-STR_HEADER_CONTENT = """<td><b>{s}</b></td>"""
+STR_HEADER_CONTENT = """<th>{s}</th>"""
+STR_LEVEL_A_BODY = """<tr class="info">"""
+STR_LEVEL_D_BODY = """<tr class="danger">"""
+STR_LEVEL_NORMAL_BODY = """<tr>"""
 
 
 @register.simple_tag
@@ -59,6 +61,18 @@ def get_display_str(data_dict, field_name, front=True):
     if front:
         return mark_safe(_ret)
     return _ret
+
+
+@register.simple_tag
+def compute_colorful_table_body(data_dict, field_name, front=True):
+    _d = data_dict.get(field_name, {})
+    _ret = _d.get(FRONT_DISPLAY_STR, '')
+    if _ret == 'A':
+        return mark_safe(STR_LEVEL_A_BODY)
+    if _ret == 'D':
+        return mark_safe(STR_LEVEL_D_BODY)
+    else:
+        return mark_safe(STR_LEVEL_NORMAL_BODY)
 
 
 @register.simple_tag

@@ -322,7 +322,7 @@ class ScoreRecord(models.Model):
         return '{}{}'.format(self.student.name, self.score)
 
     class Meta:
-        ordering = ['-score']
+        ordering = ['examination', '-score']
 
 
 class Student(models.Model):
@@ -332,7 +332,7 @@ class Student(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.name
+        return '{} ({})'.format(self.name, self.code)
 
     class Meta:
         ordering = ['name']
