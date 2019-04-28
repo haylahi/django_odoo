@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'product',
     'stock',
     'account',
+    'school',
 ]
 
 AUTHENTICATION_BACKENDS = (
