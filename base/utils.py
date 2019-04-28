@@ -1,15 +1,16 @@
 # author: Liberty
 # date: 2019/4/22 20:31
 
+import hashlib
 import json
 import logging
 import platform
+import random
+import time
 from datetime import datetime, date
 from pathlib import WindowsPath, PurePosixPath
 
-from django.contrib.auth.models import BaseUserManager
-
-from . import models
+from base import models
 
 __logger__ = logging.getLogger(__name__)
 
@@ -22,14 +23,13 @@ ORDER_STATE = [
     ('done', '单据完成'),
     ('locked', '锁定')
 ]
-
 DEFAULT_STATE = 'draft'
-
+FORMAT_DATETIME = '%Y-%m-%d %H:%M:%S'
+FORMAT_DATE = '%Y-%m-%d'
 SEND_SUCCESS_DATA = {
     'code': '0',
     'message': 'success.',
 }
-
 SEND_ERROR_DATA = {
     'code': '1',
     'message': 'error.'
@@ -47,9 +47,6 @@ def make_error_resp(message: str = None):
 
 
 def generate_random_code():
-    import time
-    import hashlib
-    import random
     m = hashlib.md5(str(time.clock()).encode('utf8'))
     m = m.hexdigest()
     r = random.randint(0, 999999)
@@ -93,9 +90,9 @@ def get_field_dict(model_obj):
     _d = {}
     for attr in _fields:
         if isinstance(getattr(model_obj, attr), datetime):
-            _d[attr] = getattr(model_obj, attr).strftime('%Y-%m-%d %H:%M:%S')
+            _d[attr] = getattr(model_obj, attr).strftime(FORMAT_DATETIME)
         elif isinstance(getattr(model_obj, attr), date):
-            _d[attr] = getattr(model_obj, attr).strftime('%Y-%m-%d')
+            _d[attr] = getattr(model_obj, attr).strftime(FORMAT_DATE)
         else:
             _d[attr] = getattr(model_obj, attr)
     return _d
@@ -106,7 +103,108 @@ def create_file(path, content):
         f.write(content)
 
 
-class MyUserManager(BaseUserManager):
+# -----------------------------------------------------------------------------
+
+
+def _generate_index_dict(index):
+    return {
+        'type': 'str',
+        'display': index,
+        'label': ' No. '
+    }
+
+
+def _generate_field_dict(obj, field_name: str):
+    """
+    char         str
+    fk           object
+    Int          int
+    bool         bool
+    m2m          multi
+    o2m          multi
+    datetime     datetime
+    date         date
+    choices      multi       select_list
+
+    """
+    _d = dict()
+    _f_obj = obj._meta.get_field(field_name)
+    _label = _f_obj.verbose_name if _f_obj.verbose_name else _f_obj.name
+
+    if isinstance(_f_obj, models.CharField):
+        # TODO 区分 choices or not choices 是否有bug
+        _choices = getattr(_f_obj, 'choices', [])
+        if len(_choices) == 0:
+            _d['type'] = 'str'
+            _d['display'] = getattr(obj, field_name, '')
+            _d['label'] = _label
+        else:
+            _d['type'] = 'multi'
+            _d['display'] = ''
+            _d['label'] = _label
+            _d['select_list'] = _choices
+
+    if isinstance(_f_obj, models.ForeignKey):
+        fk_obj = getattr(obj, field_name, None)
+
+        _d['type'] = 'object'
+        _d['display'] = str(fk_obj) if fk_obj else ''
+        _d['label'] = _label
+        _d['instance'] = fk_obj
+
+    if isinstance(_f_obj, models.IntegerField):
+        _d['type'] = 'int'
+        _d['display'] = getattr(obj, field_name, '')
+        _d['label'] = _label
+
+    if isinstance(_f_obj, models.BooleanField):
+        _bool = getattr(obj, field_name)
+
+        _d['type'] = 'bool'
+        _d['display'] = '是(Yes)' if _bool else '否(No)'
+        _d['label'] = _label
+
+    if isinstance(_f_obj, models.DateTimeField):
+        _date = getattr(obj, field_name, None)
+
+        _d['type'] = 'datetime'
+        _d['display'] = _date.strftime(FORMAT_DATETIME) if _date else ''
+        _d['label'] = _label
+
+    if isinstance(_f_obj, models.DateField):
+        _date = getattr(obj, field_name, None)
+
+        _d['type'] = 'date'
+        _d['display'] = _date.strftime(FORMAT_DATE) if _date else ''
+        _d['label'] = _label
+
+    # TODO m2m o2m
+
+    return _d
+
+
+def generate_front_list(obj_list, field_list) -> list:
+    _obj_list, _field_list, _li = obj_list, field_list, list()
+    if _obj_list is None:
+        return []
+    if not isinstance(obj_list, models.Model) and len(obj_list) == 0:
+        return []
+
+    if isinstance(_obj_list, models.Model):
+        _obj_list = [_obj_list, ]
+    for i, o in enumerate(_obj_list, start=1):
+        _d = dict()
+        _d['_index'] = _generate_index_dict(i)
+        for f in _field_list:
+            _d[f] = _generate_field_dict(o, f)
+        _li.append(_d)
+    return _li
+
+
+# -------------------- not raise error -------------------------
+
+
+class MyUserManager(models.BaseUserManager):
     def _create_user(self, username, password, **extra_fields):
         if not username:
             raise ValueError('The given username must be set')

@@ -1,12 +1,13 @@
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+# noinspection PyUnresolvedReferences
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
-# models
+# noinspection PyUnresolvedReferences
 from django.db.models import (
     Model, CharField, BooleanField, IntegerField,
-    DateTimeField, ForeignKey,
+    DateTimeField, ForeignKey, DateField,
     CASCADE, SET_NULL, PROTECT
 )
 

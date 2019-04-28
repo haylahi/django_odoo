@@ -1,9 +1,8 @@
-from copy import deepcopy
-
 from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
 
+from base.utils import generate_front_list
 from . import models
 from . import serializer
 
@@ -62,16 +61,13 @@ class TeacherListCreateView(generics.ListCreateAPIView):
 
 def html_examination(request):
     examination_list = models.Examination.objects.filter(is_active=True)
+    field_list = ['name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
     return render(request, 'school/examination_list.html', {
         'model_object': models.Examination,
-        'model_data': examination_list,
-        'model_fields': ['name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
+        'model_data': generate_front_list(examination_list, field_list),
+        'model_fields': field_list
     })
 
 
 def real_test(request):
-    obj = models.Examination.objects.get(pk=3)
-    r = obj._meta.get_field('name').verbose_name
-    print(r)
-
     return HttpResponse('200')
