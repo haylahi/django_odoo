@@ -149,6 +149,8 @@ class Material(models.Model):
     name = models.CharField('教材名', max_length=255)
     code = models.CharField('代号', max_length=255, default='')
     credits = models.CharField('教材学分', max_length=255)
+    teachers = models.ManyToManyField('Teacher', blank=True, verbose_name='教该课程的老师')
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -198,7 +200,10 @@ class ClassCourseMap(models.Model):
 
     base_class = models.ForeignKey(BaseClass, on_delete=models.PROTECT, verbose_name='所属班级', related_name='class_courses')
     course = models.ForeignKey(BaseCourse, on_delete=models.PROTECT, verbose_name='所选课程')
+
+    # 过滤教材 -->  grade_info  course
     material = models.ForeignKey(Material, on_delete=models.PROTECT, verbose_name='所选教材')
+    # 过滤 老师
     teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, verbose_name='任课老师')
 
     # 过滤条件
@@ -207,7 +212,7 @@ class ClassCourseMap(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}{}{}'.format(self.base_class.name, self.grade_info.name, self.course.name)
+        return '{}-{}-[{}]'.format(self.base_class.name, self.grade_info.name, self.course.name)
 
     class Meta:
         unique_together = ('grade_info', 'base_class', 'course')
@@ -223,8 +228,15 @@ class Examination(models.Model):
 
     """
     name = models.CharField('考试名称', max_length=255)
-    course_map = models.ForeignKey(ClassCourseMap, on_delete=models.PROTECT, verbose_name='考试')
-    invigilator = models.ForeignKey('Teacher', on_delete=models.PROTECT, verbose_name='监考老师')
+    course_map = models.ForeignKey(ClassCourseMap, on_delete=models.PROTECT, verbose_name='课程')
+    invigilator = models.ForeignKey(
+        'Teacher', on_delete=models.PROTECT,
+        verbose_name='监考老师', related_name='invigilator_examination'
+    )
+    read_teacher = models.ForeignKey(
+        'Teacher', on_delete=models.PROTECT, null=True, blank=True,
+        verbose_name='阅卷老师', related_name='teacher_read_examination'
+    )
 
     test_type = models.CharField('考试类型', max_length=255, choices=CHOICES_EXAMINATION_TYPE)
     test_date = models.DateField('考试时间', null=True, blank=True)
@@ -251,7 +263,7 @@ class ScoreRecord(models.Model):
 
     #  67.9
     score = models.CharField('分数', max_length=255, default='')
-    score_level = models.CharField('得分等级', max_length=255, choices=CHOICES_LEVEL)
+    score_level = models.CharField('得分等级', max_length=255, default='')
     # 根据分数
     grade_point = models.CharField('获得绩点', max_length=255, default='')
     # 根据 绩点* 教材学分

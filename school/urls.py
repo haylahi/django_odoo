@@ -13,4 +13,7 @@ urlpatterns = [
     path('teacher/', views.TeacherListCreateView.as_view()),
     path('class/', views.ClassListCreateView.as_view()),
     path('course_map/', views.CourseMapListCreateView.as_view()),
+    path('examination/', views.ExaminationListCreateView.as_view()),
+    path('score/', views.ScoreListCreateView.as_view()),
+    path('student/', views.StudentListCreateView.as_view()),
 ]

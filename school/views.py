@@ -34,6 +34,21 @@ class CourseMapListCreateView(generics.ListCreateAPIView):
     serializer_class = serializer.CourseMapSerializer
 
 
+class ExaminationListCreateView(generics.ListCreateAPIView):
+    queryset = models.Examination.objects.filter(is_active=True)
+    serializer_class = serializer.ExaminationSerializer
+
+
+class ScoreListCreateView(generics.ListCreateAPIView):
+    queryset = models.ScoreRecord.objects.filter(is_active=True)
+    serializer_class = serializer.ScoreSerializer
+
+
+class StudentListCreateView(generics.ListCreateAPIView):
+    queryset = models.Student.objects.filter(is_active=True)
+    serializer_class = serializer.StudentSerializer
+
+
 class TeacherListCreateView(generics.ListCreateAPIView):
     queryset = models.Teacher.objects.filter(is_active=True)
     serializer_class = serializer.TeacherSerializer

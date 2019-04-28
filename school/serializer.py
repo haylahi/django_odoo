@@ -56,6 +56,27 @@ class CourseMapSerializer(serializers.ModelSerializer):
         read_only_fields = ('is_active', 'create_time')
 
 
+class ExaminationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Examination
+        fields = '__all__'
+        read_only_fields = ('is_active', 'create_time')
+
+
+class ScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ScoreRecord
+        fields = '__all__'
+        read_only_fields = ('is_active', 'create_time')
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Student
+        fields = '__all__'
+        read_only_fields = ('is_active',)
+
+
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Teacher
