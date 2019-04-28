@@ -67,6 +67,7 @@ def get_display_str(data_dict, field_name, front=True):
 def compute_colorful_table_body(data_dict, field_name, front=True):
     _d = data_dict.get(field_name, {})
     _ret = _d.get(FRONT_DISPLAY_STR, '')
+    # TODO 重新方法
     if _ret == 'A':
         return mark_safe(STR_LEVEL_A_BODY)
     if _ret == 'D':
