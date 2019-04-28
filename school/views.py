@@ -1,4 +1,7 @@
+from copy import deepcopy
+
 from django.http import HttpResponse
+from django.shortcuts import render
 from rest_framework import generics
 
 from . import models
@@ -57,8 +60,18 @@ class TeacherListCreateView(generics.ListCreateAPIView):
 
 # -------------------------------------------------------------------
 
-def school_test(request):
-    obj = models.Examination.objects.get(pk=1)
-    obj.create_score_record()
+def html_examination(request):
+    examination_list = models.Examination.objects.filter(is_active=True)
+    return render(request, 'school/examination_list.html', {
+        'model_object': models.Examination,
+        'model_data': examination_list,
+        'model_fields': ['name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
+    })
 
-    return HttpResponse('<h1>200 Ok</h1>', content_type='text/html', status=200)
+
+def real_test(request):
+    obj = models.Examination.objects.get(pk=3)
+    r = obj._meta.get_field('name').verbose_name
+    print(r)
+
+    return HttpResponse('200')

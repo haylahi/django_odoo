@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load base_tags %}
+
+{% block base_content %}
+
+
+    <div class="row">
+        <h2>Create or View all Examination</h2>
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                {% generate_table_headers model_object model_fields %}
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+            </tr>
+            <tr>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+            </tr>
+            <tr>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+                <th>xxxxx</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block base_script %}
+    <script>
+        let examinationListURL = `http://` + `{{ request.get_host }}` + `/school/examination/`;
+        $(document).ready(function () {
+            // $.ajax({
+            //     method: 'GET',
+            //     url: examinationListURL,
+            //     success: function (ret) {
+            //         console.log(ret.results);
+            //     }
+            // })
+        });
+    </script>
+{% endblock %}

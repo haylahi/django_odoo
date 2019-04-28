@@ -60,7 +60,7 @@ class ExaminationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Examination
         fields = '__all__'
-        read_only_fields = ('is_active', 'create_time')
+        read_only_fields = ('is_active', 'create_time', 'is_create_record')
 
 
 class ScoreSerializer(serializers.ModelSerializer):

@@ -42,8 +42,8 @@ def create_score_records(task_name, **kwargs):
             'is_active': True
         }
         _record_obj_list.append(models.ScoreRecord(**attr))
-    ret = models.ScoreRecord.objects.bulk_create(_record_obj_list)
-    if len(ret) == len(student_list):
+    _ret = models.ScoreRecord.objects.bulk_create(_record_obj_list)
+    if len(_ret) == len(student_list):
         # 3. 更改 examination is_create_record
         examination.is_create_record = True
         examination.save()
