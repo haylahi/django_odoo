@@ -61,10 +61,11 @@ class TeacherListCreateView(generics.ListCreateAPIView):
 
 def html_examination(request):
     examination_list = models.Examination.objects.filter(is_active=True)
-    field_list = ['name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
+    field_list = ['id', 'name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
+    attr = generate_front_list(examination_list, field_list)
     return render(request, 'school/examination_list.html', {
         'model_object': models.Examination,
-        'model_data': generate_front_list(examination_list, field_list),
+        'model_data': attr,
         'model_fields': field_list
     })
 

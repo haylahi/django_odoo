@@ -34,6 +34,11 @@ SEND_ERROR_DATA = {
     'code': '1',
     'message': 'error.'
 }
+FRONT_INDEX_STR = 'front_index'
+FRONT_DISPLAY_STR = 'display'
+FRONT_LABEL_STR = 'label'
+FRONT_TYPE_STR = 'type'
+FRONT_PRIMARY_KEY_STR = 'primary_key'
 
 
 def make_success_resp():
@@ -125,6 +130,7 @@ def _generate_field_dict(obj, field_name: str):
     datetime     datetime
     date         date
     choices      multi       select_list
+    id           int
 
     """
     _d = dict()
@@ -132,58 +138,64 @@ def _generate_field_dict(obj, field_name: str):
     _label = _f_obj.verbose_name if _f_obj.verbose_name else _f_obj.name
 
     if isinstance(_f_obj, models.CharField):
-        # TODO 区分 choices or not choices 是否有bug
         _choices = getattr(_f_obj, 'choices', [])
         if len(_choices) == 0:
-            _d['type'] = 'str'
-            _d['display'] = getattr(obj, field_name, '')
-            _d['label'] = _label
+            _d[FRONT_TYPE_STR] = 'str'
+            _d[FRONT_DISPLAY_STR] = getattr(obj, field_name, '')
+            _d[FRONT_LABEL_STR] = _label
         else:
-            _d['type'] = 'multi'
-            _d['display'] = ''
-            _d['label'] = _label
+            _str = getattr(obj, 'get_{}_display'.format(_f_obj.name))()
+            _d[FRONT_TYPE_STR] = 'multi'
+            _d[FRONT_DISPLAY_STR] = _str
+            _d[FRONT_LABEL_STR] = _label
             _d['select_list'] = _choices
 
     if isinstance(_f_obj, models.ForeignKey):
         fk_obj = getattr(obj, field_name, None)
 
-        _d['type'] = 'object'
-        _d['display'] = str(fk_obj) if fk_obj else ''
-        _d['label'] = _label
+        _d[FRONT_TYPE_STR] = 'object'
+        _d[FRONT_DISPLAY_STR] = str(fk_obj) if fk_obj else ''
+        _d[FRONT_LABEL_STR] = _label
         _d['instance'] = fk_obj
 
     if isinstance(_f_obj, models.IntegerField):
-        _d['type'] = 'int'
-        _d['display'] = getattr(obj, field_name, '')
-        _d['label'] = _label
+        _d[FRONT_TYPE_STR] = 'int'
+        _d[FRONT_DISPLAY_STR] = getattr(obj, field_name, '')
+        _d[FRONT_LABEL_STR] = _label
 
     if isinstance(_f_obj, models.BooleanField):
         _bool = getattr(obj, field_name)
 
-        _d['type'] = 'bool'
-        _d['display'] = '是(Yes)' if _bool else '否(No)'
-        _d['label'] = _label
+        _d[FRONT_TYPE_STR] = 'bool'
+        _d[FRONT_DISPLAY_STR] = '是(Yes)' if _bool else '否(No)'
+        _d[FRONT_LABEL_STR] = _label
 
     if isinstance(_f_obj, models.DateTimeField):
         _date = getattr(obj, field_name, None)
 
-        _d['type'] = 'datetime'
-        _d['display'] = _date.strftime(FORMAT_DATETIME) if _date else ''
-        _d['label'] = _label
+        _d[FRONT_TYPE_STR] = 'datetime'
+        _d[FRONT_DISPLAY_STR] = _date.strftime(FORMAT_DATETIME) if _date else ''
+        _d[FRONT_LABEL_STR] = _label
 
     if isinstance(_f_obj, models.DateField):
         _date = getattr(obj, field_name, None)
 
-        _d['type'] = 'date'
-        _d['display'] = _date.strftime(FORMAT_DATE) if _date else ''
-        _d['label'] = _label
+        _d[FRONT_TYPE_STR] = 'date'
+        _d[FRONT_DISPLAY_STR] = _date.strftime(FORMAT_DATE) if _date else ''
+        _d[FRONT_LABEL_STR] = _label
+
+    if isinstance(_f_obj, models.AutoField):
+        _d[FRONT_TYPE_STR] = 'int'
+        _d[FRONT_DISPLAY_STR] = getattr(obj, field_name)
+        _d[FRONT_LABEL_STR] = ' ID '
+        _d[FRONT_PRIMARY_KEY_STR] = '1'
 
     # TODO m2m o2m
 
     return _d
 
 
-def generate_front_list(obj_list, field_list) -> list:
+def generate_front_list(obj_list, field_list, index_tag=False) -> list:
     _obj_list, _field_list, _li = obj_list, field_list, list()
     if _obj_list is None:
         return []
@@ -194,7 +206,8 @@ def generate_front_list(obj_list, field_list) -> list:
         _obj_list = [_obj_list, ]
     for i, o in enumerate(_obj_list, start=1):
         _d = dict()
-        _d['_index'] = _generate_index_dict(i)
+        if index_tag:
+            _d[FRONT_INDEX_STR] = _generate_index_dict(i)
         for f in _field_list:
             _d[f] = _generate_field_dict(o, f)
         _li.append(_d)

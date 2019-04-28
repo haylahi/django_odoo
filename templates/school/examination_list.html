@@ -5,45 +5,38 @@
 
 
     <div class="row">
+
         <h2>Create or View all Examination</h2>
 
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                {% generate_table_headers model_object model_fields %}
-            </tr>
-            </thead>
+        {% if model_data %}
+            {% check_front_index model_data as TAG_FRONT_INDEX %}
+            <table class="table table-hover table-bordered">
+                <!-- 判断 list 是否为空 -->
+                <thead>
+                <tr>
+                    {% if TAG_FRONT_INDEX %}
+                        <td><b>{% get_index_label model_data %}</b></td>
+                    {% endif %}
+                    {% generate_table_headers model_object model_fields %}
+                </tr>
+                </thead>
 
-            <tbody>
-            <tr>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-            </tr>
-            <tr>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-            </tr>
-            <tr>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-                <th>xxxxx</th>
-            </tr>
-            </tbody>
-        </table>
+                <tbody>
+                {% for model_one in model_data %}
+                    <tr>
+                        {% if TAG_FRONT_INDEX %}
+                            <th>{% get_index_display model_one %}</th>
+                        {% endif %}
+                        {% for field in model_fields %}
+                            <th>{% get_display_str model_one field %}</th>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <h3>Not <b>{% get_model_verbose_name model_object %}</b> Data</h3>
+        {% endif %}
     </div>
 
 {% endblock %}
@@ -59,6 +52,7 @@
             //         console.log(ret.results);
             //     }
             // })
+            var modelCount = `{{ model_data | length }}`;
         });
     </script>
 {% endblock %}

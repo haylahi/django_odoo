@@ -7,7 +7,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 # noinspection PyUnresolvedReferences
 from django.db.models import (
     Model, CharField, BooleanField, IntegerField,
-    DateTimeField, ForeignKey, DateField,
+    DateTimeField, ForeignKey, DateField, AutoField,
     CASCADE, SET_NULL, PROTECT
 )
 

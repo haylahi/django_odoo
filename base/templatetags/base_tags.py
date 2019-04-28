@@ -6,6 +6,8 @@ import logging
 from django import template
 from django.utils.safestring import mark_safe
 
+from base.utils import FRONT_INDEX_STR, FRONT_DISPLAY_STR, FRONT_LABEL_STR
+
 register = template.Library()
 _log = logging.getLogger(__name__)
 
@@ -13,13 +15,16 @@ STR_HEADER_SEQUENCE = """<td><b>No.</b></td>"""
 STR_HEADER_CONTENT = """<td><b>{s}</b></td>"""
 
 
-def get_field_desc(model_obj, field_name):
+@register.simple_tag
+def get_field_desc(model_obj, field_name, front=True):
     try:
         ret = model_obj._meta.get_field(field_name).verbose_name
     except Exception as e:
         _log.error(e)
         ret = field_name
-    return ret
+    if not front:
+        return ret
+    return mark_safe(ret)
 
 
 @register.simple_tag
@@ -34,9 +39,45 @@ def generate_table_headers(model_obj, field_list):
     """
     if len(field_list) == 0:
         return ''
-    _content = STR_HEADER_SEQUENCE
+    _content = ''
     for f in field_list:
-        _s = get_field_desc(model_obj, f)
+        _s = get_field_desc(model_obj, f, False)
         _s = STR_HEADER_CONTENT.format(s=_s)
         _content = '{c}{s}'.format(c=_content, s=_s)
     return mark_safe(_content)
+
+
+@register.simple_tag
+def get_model_verbose_name(model_obj):
+    return mark_safe(model_obj._meta.verbose_name)
+
+
+@register.simple_tag
+def get_display_str(data_dict, field_name, front=True):
+    _d = data_dict.get(field_name, {})
+    _ret = _d.get(FRONT_DISPLAY_STR, '')
+    if front:
+        return mark_safe(_ret)
+    return _ret
+
+
+@register.simple_tag
+def get_index_display(data_dict, front=True):
+    return get_display_str(data_dict, FRONT_INDEX_STR, front)
+
+
+@register.simple_tag
+def get_index_label(data_list, front=True):
+    data_list = data_list[0]
+    _d = data_list.get(FRONT_INDEX_STR, {})
+    _ret = _d.get(FRONT_LABEL_STR, '')
+    if front:
+        return mark_safe(_ret)
+    return _ret
+
+
+@register.simple_tag
+def check_front_index(data_list):
+    data_list = data_list[0]
+    _b = data_list.get(FRONT_INDEX_STR, False)
+    return _b
