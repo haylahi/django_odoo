@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework import generics
 
 from . import models
@@ -52,3 +53,21 @@ class StudentListCreateView(generics.ListCreateAPIView):
 class TeacherListCreateView(generics.ListCreateAPIView):
     queryset = models.Teacher.objects.filter(is_active=True)
     serializer_class = serializer.TeacherSerializer
+
+
+# -------------------------------------------------------------------
+
+def school_test(request):
+    # obj = models.Examination.objects.get(pk=1)
+    # obj.create_score_record()
+
+    from school import tasks
+
+    try:
+        res = tasks.create_new_record.delay('create_record', data='hello')
+        _result = res.get(timeout=0.2)
+        print('get celery result {}'.format(_result))
+    except Exception as e:
+        print('执行失败: {}'.format(e))
+
+    return HttpResponse('<h1>200 Ok</h1>', content_type='text/html', status=200)

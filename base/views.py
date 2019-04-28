@@ -143,6 +143,7 @@ class UploadFileView(viewsets.ViewSet):
                 os.makedirs(_dir)
             _b64 = base64.b64decode(_b64)
 
+            # FIXME 修改这里的逻辑 可能会出现重复创建的情况
             try:
                 res = tasks.tasks_create_file.delay('create-file', path=_path, content=_b64)
                 res.get(timeout=1)

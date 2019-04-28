@@ -6,7 +6,6 @@ from django.db import models
 
 # ---------------------------------------------------------
 
-
 __logger__ = logging.getLogger(__name__)
 
 CHOICES_SEMESTER = [
@@ -149,6 +148,8 @@ class Material(models.Model):
     name = models.CharField('教材名', max_length=255)
     code = models.CharField('代号', max_length=255, default='')
     credits = models.CharField('教材学分', max_length=255)
+    full_score_tag = models.CharField('满分', max_length=255, default='100')
+
     teachers = models.ManyToManyField('Teacher', blank=True, verbose_name='教该课程的老师')
 
     is_active = models.BooleanField(default=True)
@@ -241,6 +242,8 @@ class Examination(models.Model):
     test_type = models.CharField('考试类型', max_length=255, choices=CHOICES_EXAMINATION_TYPE)
     test_date = models.DateField('考试时间', null=True, blank=True)
     create_time = models.DateTimeField(default=datetime.now)
+    is_create_record = models.BooleanField('创建了考试记录', default=False)
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -248,6 +251,21 @@ class Examination(models.Model):
 
     class Meta:
         ordering = ['name']
+
+    def create_score_record(self):
+        """
+        创建考试记录为每个学生
+
+        """
+
+        _class = self.course_map.base_class
+        # 准备数据
+        _students = _class.class_students.all().filter(is_active=True)  # list or None
+        _date_now = datetime.now()  # datetime
+        _full_mark = self.course_map.material.full_score_tag  # str
+        _create_teacher = self.read_teacher  # obj or None
+
+        # 创建任务
 
 
 class ScoreRecord(models.Model):
@@ -307,6 +325,3 @@ class Teacher(models.Model):
 
     class Meta:
         ordering = ['name']
-
-    def d(self):
-        self.head_teacher_class.all()
