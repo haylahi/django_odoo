@@ -24,8 +24,10 @@ ORDER_STATE = [
     ('locked', '锁定')
 ]
 DEFAULT_STATE = 'draft'
+
 FORMAT_DATETIME = '%Y-%m-%d %H:%M:%S'
 FORMAT_DATE = '%Y-%m-%d'
+
 SEND_SUCCESS_DATA = {
     'code': '0',
     'message': 'success.',
@@ -34,6 +36,7 @@ SEND_ERROR_DATA = {
     'code': '1',
     'message': 'error.'
 }
+
 FRONT_INDEX_STR = 'front_index'
 FRONT_DISPLAY_STR = 'display'
 FRONT_LABEL_STR = 'label'

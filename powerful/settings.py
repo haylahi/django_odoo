@@ -1,4 +1,5 @@
 import os
+import sys
 
 import djcelery
 
@@ -7,15 +8,10 @@ import djcelery
 djcelery.setup_loader()
 
 BROKER_URL = 'amqp://admin:admin@localhost//'
-
 CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
-
+sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
 SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
-
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -147,3 +143,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 MEDIA_URL = '/media/'
 
 ANONYMOUS_USER_NAME = 'AnonymousUser'
+
+CONFIG_ONE_PAGE_SIZE = 20
+CONFIG_ONE_PAGE_OFFSET = 6
