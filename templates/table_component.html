@@ -5,18 +5,19 @@
     <div class="row-fluid">
         {% if model_data %}
             <table class="table table-hover table-bordered">
-                <thead>
+                <thead id="mine-thead">
                 <tr>
-                    {% for f in model_field_list %}
-                        {% generate_table_header model_object f %}
+                    {% for col in model_field_list %}
+                        {% generate_table_header model_object col forloop.counter0 %}
                     {% endfor %}
                 </tr>
                 </thead>
                 <tbody>
                 {% for obj in model_data %}
                     <tr>
-                        {% for f in model_field_list %}
-                            {% generate_table_body obj f %}
+                        {% get_col_index forloop.counter0 as col_index %}
+                        {% for col in model_field_list %}
+                            {% generate_table_body obj col col_index forloop.counter0 %}
                         {% endfor %}
                     </tr>
                 {% endfor %}
@@ -29,5 +30,9 @@
 {% endblock %}
 
 {% block base_script %}
+    <script>
+        $(document).ready(function () {
 
+        })
+    </script>
 {% endblock %}
