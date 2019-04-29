@@ -2,10 +2,13 @@
 {% load base_tags %}
 
 {% block base_content %}
-    <div class="row-fluid">
+    <div class="row-fluid" id="mine-div">
         {% if model_data %}
+            {% generate_table model_object model_data model_field_list %}
+
+            {% comment %}
             <table class="table table-hover table-bordered">
-                <thead id="mine-thead">
+                <thead>
                 <tr>
                     {% for col in model_field_list %}
                         {% generate_table_header model_object col forloop.counter0 %}
@@ -23,6 +26,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% endcomment %}
         {% else %}
             <h3>No Data</h3>
         {% endif %}
@@ -32,7 +36,6 @@
 {% block base_script %}
     <script>
         $(document).ready(function () {
-
         })
     </script>
 {% endblock %}

@@ -73,7 +73,9 @@ def html_score_list(request):
     # TODO 分页 把 field_list --> dict str 分数排序 bug   把配置封装成对象
     records = models.ScoreRecord.objects.filter(is_active=True)
     field_list = ['id', 'examination', 'student', 'full_score_tag', 'real_score',
-                  'score', 'score_level', 'grade_point', 'credits', 'is_joined', 'is_passed', 'create_teacher']
+                  'score', 'score_level', 'grade_point', 'credits', 'is_joined',
+                  'is_passed', 'create_teacher']
+
     return render(request, 'table_component.html', {
         'model_object': models.ScoreRecord,
         'model_data': records,  # 可能为空
@@ -126,70 +128,70 @@ def real_test(request):
     # teachers = objs.teachers.filter(is_active=True)
     # print(teachers, type(teachers))
 
-    from django.core import paginator
-
-    data_list = ['吴刚',
-                 '王浩',
-                 '蒋建',
-                 '许成',
-                 '胡兵',
-                 '何凤英',
-                 '徐桂兰',
-                 '林成',
-                 '王倩',
-                 '刘明',
-                 '支平',
-                 '左鑫',
-                 '冯岩',
-                 '胡婷婷',
-                 '谭秀梅',
-                 '毛娟',
-                 '周晨',
-                 '晏坤',
-                 '杨婷婷',
-                 '周浩',
-                 '常玉梅',
-                 '文小红',
-                 '杨雷',
-                 '何玲',
-                 '陆强',
-                 '杜芳',
-                 '华平',
-                 '岳桂芳',
-                 '赵兰英',
-                 '郭鑫',
-                 '李海燕',
-                 '商云',
-                 '蒋阳',
-                 '周慧',
-                 '莫刚',
-                 '马海燕',
-                 '翁成',
-                 '安坤',
-                 '汪桂芳',
-                 '李丽丽',
-                 '李欢',
-                 '蒙勇',
-                 '杨斌',
-                 '刘建国',
-                 '杨建',
-                 '陈桂英',
-                 '许兰英',
-                 '饶秀珍',
-                 '叶莉',
-                 '马雷',
-                 '你好',
-                 '你好啊']
-
-    page_obj = paginator.Paginator(data_list, 5, 4, True)
-
-    print('总共数量', page_obj.count)  # 总共数量
-    print('可分为多少页', page_obj.num_pages)  # 可分为多少页
-    print('xxxx', page_obj.page_range)
-    # has_previous 上一页？ has_next 下一页 ？
-
-    for p in page_obj.page_range:
-        page_i = page_obj.page(p)
-        print('current page list:  当前是第几页{}'.format(page_i.number), page_i.object_list)
+    # from django.core import paginator
+    #
+    # data_list = ['吴刚',
+    #              '王浩',
+    #              '蒋建',
+    #              '许成',
+    #              '胡兵',
+    #              '何凤英',
+    #              '徐桂兰',
+    #              '林成',
+    #              '王倩',
+    #              '刘明',
+    #              '支平',
+    #              '左鑫',
+    #              '冯岩',
+    #              '胡婷婷',
+    #              '谭秀梅',
+    #              '毛娟',
+    #              '周晨',
+    #              '晏坤',
+    #              '杨婷婷',
+    #              '周浩',
+    #              '常玉梅',
+    #              '文小红',
+    #              '杨雷',
+    #              '何玲',
+    #              '陆强',
+    #              '杜芳',
+    #              '华平',
+    #              '岳桂芳',
+    #              '赵兰英',
+    #              '郭鑫',
+    #              '李海燕',
+    #              '商云',
+    #              '蒋阳',
+    #              '周慧',
+    #              '莫刚',
+    #              '马海燕',
+    #              '翁成',
+    #              '安坤',
+    #              '汪桂芳',
+    #              '李丽丽',
+    #              '李欢',
+    #              '蒙勇',
+    #              '杨斌',
+    #              '刘建国',
+    #              '杨建',
+    #              '陈桂英',
+    #              '许兰英',
+    #              '饶秀珍',
+    #              '叶莉',
+    #              '马雷',
+    #              '你好',
+    #              '你好啊']
+    #
+    # page_obj = paginator.Paginator(data_list, 5, 4, True)
+    #
+    # print('总共数量', page_obj.count)  # 总共数量
+    # print('可分为多少页', page_obj.num_pages)  # 可分为多少页
+    # print('xxxx', page_obj.page_range)
+    # # has_previous 上一页？ has_next 下一页 ？
+    #
+    # for p in page_obj.page_range:
+    #     page_i = page_obj.page(p)
+    #     print('current page list:  当前是第几页{}'.format(page_i.number), page_i.object_list)
 
     return HttpResponse('200')

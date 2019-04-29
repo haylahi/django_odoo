@@ -33,6 +33,14 @@ STR_TD_ID = """
 id="td-{col}-{row}"
 """
 
+TAG_TABLE_START_STR = """
+<table class="table table-hover table-bordered">
+"""
+
+TAG_TABLE_END_STR = """
+</table>
+"""
+
 
 @register.simple_tag
 def get_field_desc(model_class, field_name, front=True):
@@ -46,12 +54,12 @@ def get_field_desc(model_class, field_name, front=True):
 
 
 @register.simple_tag
-def generate_table_header(model_class, field_name, index='', front=True):
+def generate_table_header(model_class, field_name, index, front=True):
     _desc = get_field_desc(model_class, field_name, True)
     _color = 'none'
 
     # 开启id
-    _id_tag = False
+    _id_tag = True
     if not _id_tag:
         index = ''
     else:
@@ -62,11 +70,11 @@ def generate_table_header(model_class, field_name, index='', front=True):
 
 
 @register.simple_tag
-def generate_table_body(model_obj, field_name, col_index='', row_index='', front=True):
+def generate_table_body(model_obj, field_name, col_index, row_index, front=True):
     _data = getattr(model_obj, field_name, '')
     _color = 'none'
 
-    _id_tag = False
+    _id_tag = True
     if not _id_tag:
         index = ''
     else:
@@ -85,3 +93,28 @@ def generate_table_body(model_obj, field_name, col_index='', row_index='', front
 @register.simple_tag
 def get_col_index(index, front=True):
     return mark_safe(index) if front else index
+
+
+@register.simple_tag
+def generate_table(model_class, model_data, field_list, front=True):
+    _s = TAG_TABLE_START_STR
+
+    # thead
+    _s = '{}{}'.format(TAG_TABLE_START_STR, '<thead><tr>')
+    for i, f in enumerate(field_list):
+        _ret = generate_table_header(model_class, f, i, False)
+        _s = '{}{}'.format(_s, _ret)
+    _s = '{}{}'.format(_s, '</tr></thead>')
+
+    # tbody
+    _s = '{}{}'.format(_s, '<tbody>')
+    for col, obj in enumerate(model_data):
+        _s = '{}{}'.format(_s, '<tr>')
+        for row, f in enumerate(field_list):
+            _res = generate_table_body(obj, f, col, row, False)
+            _s = '{}{}'.format(_s, _res)
+        _s = '{}{}'.format(_s, '</tr>')
+    _s = '{}{}'.format(_s, '</tbody>')
+
+    _s = '{}{}'.format(_s, TAG_TABLE_END_STR)
+    return mark_safe(_s) if front else _s
