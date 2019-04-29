@@ -126,4 +126,8 @@ def real_test(request):
             models.ScoreRecord.objects.filter(id=r.id).update(**attr)
     """
 
+    objs = models.Material.objects.get(pk=7)
+    teachers = objs.teachers.filter(is_active=True)
+    print(teachers, type(teachers))
+
     return HttpResponse('200')

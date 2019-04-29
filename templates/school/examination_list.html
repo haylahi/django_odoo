@@ -3,9 +3,27 @@
 
 {% block base_content %}
 
-    <div class="row" style="margin: auto">
+    <div class="row-fluid">
         {% get_model_verbose_name model_object as MODEL_VERBOSE_NAME %}
-        <h2>Create or View all <b>{{ MODEL_VERBOSE_NAME | upper }}</b></h2>
+
+        <div class="row" style="margin: auto;">
+            <div class="col-md-6" style="padding: 5px;">
+                <h4>Create or View all <b>{{ MODEL_VERBOSE_NAME | upper }}</b></h4>
+            </div>
+            <div class="col-md-6 ">
+                <input type="text" placeholder="搜索" style="width: 50%" class="form-control pull-right">
+            </div>
+
+        </div>
+        <div class="row" style="margin: auto;">
+            <div class="col-md-6" style="padding: 5px">
+                <button class="btn btn-info" id="btnAlert">创建</button>
+                <button class="btn">取消</button>
+            </div>
+            <div class="col-md-6">
+                <p>筛选 分组 分页 自定义条件 </p>
+            </div>
+        </div>
 
         {% if model_data %}
             {% check_front_index model_data as TAG_FRONT_INDEX %}
@@ -61,6 +79,26 @@
             var modelCount = `{{ model_data | length }}`;
             var TAG_P = $('#DataCount')[0];
             TAG_P.innerHTML = `一共 <b>` + modelCount + '</b> 条数据';
+
+            var $btn = $('#btnAlert');
+            $btn.on('click', function () {
+                toastr.options = {
+                    closeButton: false,
+                    debug: false,
+                    progressBar: false,
+                    positionClass: "toast-top-right",
+                    onclick: null,
+                    showDuration: "300",
+                    hideDuration: "1000",
+                    timeOut: "1500",
+                    extendedTimeOut: "1000",
+                    showEasing: "swing",
+                    hideEasing: "linear",
+                    showMethod: "fadeIn",
+                    hideMethod: "fadeOut"
+                };
+                toastr["info"]("you click the button");
+            });
         });
     </script>
 {% endblock %}

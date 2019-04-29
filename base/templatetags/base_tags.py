@@ -96,3 +96,7 @@ def check_front_index(data_list):
     data_list = data_list[0]
     _b = data_list.get(FRONT_INDEX_STR, False)
     return _b
+
+# -----------------------------------------------------------------------------
+
+

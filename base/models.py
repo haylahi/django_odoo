@@ -276,3 +276,5 @@ class FileObject(Model):
 
     class Meta:
         ordering = ['-create_time']
+
+# TODO  我的过滤条件 创建一个新的表保存 自定的搜索条件
