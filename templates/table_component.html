@@ -1,14 +1,33 @@
 {% extends 'base.html' %}
+{% load base_tags %}
 
 {% block base_content %}
-    <div class="row" style="margin: auto">
-
-
+    <div class="row-fluid">
+        {% if model_data %}
+            <table class="table table-hover table-bordered">
+                <thead>
+                <tr>
+                    {% for f in model_field_list %}
+                        {% generate_table_header model_object f %}
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in model_data %}
+                    <tr>
+                        {% for f in model_field_list %}
+                            {% generate_table_body obj f %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <h3>No Data</h3>
+        {% endif %}
     </div>
 {% endblock %}
 
 {% block base_script %}
 
 {% endblock %}
-
-

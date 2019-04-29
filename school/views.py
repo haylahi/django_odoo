@@ -2,7 +2,6 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
 
-from base.utils import generate_front_list
 from . import models
 from . import serializer
 
@@ -62,11 +61,11 @@ class TeacherListCreateView(generics.ListCreateAPIView):
 def html_examination(request):
     examination_list = models.Examination.objects.filter(is_active=True)
     field_list = ['id', 'name', 'course_map', 'invigilator', 'read_teacher', 'test_type', 'test_date']
-    attr = generate_front_list(examination_list, field_list)
-    return render(request, 'school/examination_list.html', {
+    # attr = generate_front_list(examination_list, field_list)
+    return render(request, 'table_component.html', {
         'model_object': models.Examination,
-        'model_data': attr,
-        'model_fields': field_list
+        'model_data': examination_list,
+        'model_field_list': field_list
     })
 
 
@@ -75,13 +74,10 @@ def html_score_list(request):
     records = models.ScoreRecord.objects.filter(is_active=True)
     field_list = ['id', 'examination', 'student', 'full_score_tag', 'real_score',
                   'score', 'score_level', 'grade_point', 'credits', 'is_joined', 'is_passed', 'create_teacher']
-    editable_field_list = ['real_score', 'is_joined']
-    attr = generate_front_list(records, field_list, editable_field_list)
-    return render(request, 'school/examination_list.html', {
+    return render(request, 'table_component.html', {
         'model_object': models.ScoreRecord,
-        'model_data': attr,
-        'model_fields': field_list,
-        'model_colorful_field': 'score_level'
+        'model_data': records,  # 可能为空
+        'model_field_list': field_list,
     })
 
 

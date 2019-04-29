@@ -96,7 +96,7 @@
 
 {% block base_script %}
     <script>
-        let examinationListURL = `http://` + `{{ request.get_host }}` + `/school/examination/`;
+        var examinationListURL = `http://` + `{{ request.get_host }}` + `/school/examination/`;
         $(document).ready(function () {
             // $.ajax({
             //     method: 'GET',

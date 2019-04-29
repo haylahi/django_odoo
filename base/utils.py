@@ -247,3 +247,12 @@ class MyUserManager(models.BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
         return self._create_user(username, password, **extra_fields)
+
+
+class CusTableHeader:
+    """自定义表头"""
+
+    def __init__(self):
+        self.model_object = None
+        self.model_field_list = []
+        self.model_data = None
