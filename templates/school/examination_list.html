@@ -3,10 +3,9 @@
 
 {% block base_content %}
 
-
-    <div class="row">
+    <div class="row" style="margin: auto">
         {% get_model_verbose_name model_object as MODEL_VERBOSE_NAME %}
-        <h2>Create or View all <b>{{ MODEL_VERBOSE_NAME }}</b></h2>
+        <h2>Create or View all <b>{{ MODEL_VERBOSE_NAME | upper }}</b></h2>
 
         {% if model_data %}
             {% check_front_index model_data as TAG_FRONT_INDEX %}
@@ -42,7 +41,7 @@
             </table>
             <h4 id="DataCount" style="text-align: right"></h4>
         {% else %}
-            <h3>Not <b>{{ MODEL_VERBOSE_NAME }}</b> Data</h3>
+            <h3>Not <b>{{ MODEL_VERBOSE_NAME | upper }}</b> Data</h3>
         {% endif %}
     </div>
 

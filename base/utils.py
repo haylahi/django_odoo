@@ -168,7 +168,7 @@ def _generate_field_dict(obj, field_name: str, editable=None):
         _bool = getattr(obj, field_name)
 
         _d[FRONT_TYPE_STR] = 'bool'
-        _d[FRONT_DISPLAY_STR] = '是(Yes)' if _bool else '否(No)'
+        _d[FRONT_DISPLAY_STR] = '是' if _bool else '否'
         _d[FRONT_LABEL_STR] = _label
 
     if isinstance(_f_obj, models.DateTimeField):

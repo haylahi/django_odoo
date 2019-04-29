@@ -71,7 +71,7 @@ def html_examination(request):
 
 
 def html_score_list(request):
-    # TODO 分页 把 field_list --> dict str 分数排序 bug
+    # TODO 分页 把 field_list --> dict str 分数排序 bug   把配置封装成对象
     records = models.ScoreRecord.objects.filter(is_active=True)
     field_list = ['id', 'examination', 'student', 'full_score_tag', 'real_score',
                   'score', 'score_level', 'grade_point', 'credits', 'is_joined', 'is_passed', 'create_teacher']
