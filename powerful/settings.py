@@ -6,11 +6,12 @@ import djcelery
 # celery config
 
 djcelery.setup_loader()
-
 BROKER_URL = 'amqp://admin:admin@localhost//'
 CELERY_RESULT_BACKEND = 'amqp://admin:admin@localhost//'
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'channels_redis'))
+
 SECRET_KEY = '+gq*k*f5l)4&hgm2q8t4i*inpfbb^(70a@(zk39xctb(*0_m&n'
 DEBUG = True
 
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
     'stock',
     'account',
     'school',
+    'chatting',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -144,5 +146,6 @@ MEDIA_URL = '/media/'
 
 ANONYMOUS_USER_NAME = 'AnonymousUser'
 
+# 分页设置
 CONFIG_ONE_PAGE_SIZE = 20
 CONFIG_ONE_PAGE_OFFSET = 6
