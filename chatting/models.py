@@ -1,6 +1,5 @@
 from django.db import models
 
-
 """
 
 1. The user sends a first message to the chatbot.
@@ -9,6 +8,14 @@ from django.db import models
    but could send one, two or more other chat messages back as chat.send_message events if it wanted to.
 4. The user sends more messages to the chatbot and more chat.received_message events are generated.
 5. After a timeout or when the application process is restarted the scope is closed.
+
+$ python3 manage.py shell
+>>> import channels.layers
+>>> channel_layer = channels.layers.get_channel_layer()
+>>> from asgiref.sync import async_to_sync
+>>> async_to_sync(channel_layer.send)('test_channel', {'type': 'hello'})
+>>> async_to_sync(channel_layer.receive)('test_channel')
+{'type': 'hello'}
 
 
 """
