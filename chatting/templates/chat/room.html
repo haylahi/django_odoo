@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block base_content %}
+    <div class="row-fluid">
+        <div class="col-md-4">
+            <h4>房间名：{{ roomName }}</h4>
+            <div class="form-group">
+                <label for="chat-log">聊天记录</label>
+                <textarea class="form-control" id="chat-log" rows="15"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="chat-message-input">发送消息</label>
+                <input class="form-control" id="chat-message-input" type="text" size="100"/>
+            </div>
+            <button id="chat-message-submit" class="btn btn-info">Send</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block base_script %}
+    <script>
+        var roomName = {{ roomName }};
+    </script>
+{% endblock %}
