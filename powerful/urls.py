@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('base/', include('base.urls')),
     path('school/', include('school.urls')),
+    path('chat/', include('chatting.urls')),
 
     # --------------------------------------------------------------------------
     url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),

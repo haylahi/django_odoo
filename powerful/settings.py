@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'channels',
     'djcelery',
     'corsheaders',
     'guardian',
@@ -87,7 +88,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'powerful.wsgi.application'
 
-# ASGI_APPLICATION = "powerful.routing.application"
+ASGI_APPLICATION = "powerful.routing.application"
 
 DATABASES = {
     'default': {
