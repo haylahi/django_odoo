@@ -12,5 +12,5 @@ def index(request):
 
 def room(request, room_name):
     return render(request, 'chat/room.html', {
-        'roomName': mark_safe(room_name),
+        'RoomName': mark_safe(room_name),
     })

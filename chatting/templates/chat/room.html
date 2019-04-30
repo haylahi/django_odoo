@@ -3,7 +3,7 @@
 {% block base_content %}
     <div class="row-fluid">
         <div class="col-md-4">
-            <h4>房间名：{{ roomName }}</h4>
+            <h4>房间名：{{ RoomName }}</h4>
             <div class="form-group">
                 <label for="chat-log">聊天记录</label>
                 <textarea class="form-control" id="chat-log" rows="15"></textarea>
@@ -19,6 +19,55 @@
 
 {% block base_script %}
     <script>
-        var roomName = {{ roomName }};
+        var roomName = '{{ RoomName }}';
+        var chatSocket = new WebSocket(`ws://` + window.location.host + `/ws/chat/` + roomName + '/');
+        chatSocket.onmessage = function (e) {
+            var data = JSON.parse(e.data);
+            console.log(data);
+
+            var message = data['message'];
+            document.querySelector('#chat-log').value += (message + '\n');
+        };
+
+        chatSocket.onclose = function (e) {
+            console.log('the web socket is closed');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function (e) {
+            if (e.keyCode === 13) {
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function (e) {
+            var messageInputDom = document.querySelector('#chat-message-input');
+            var message = messageInputDom.value;
+            if (message === '') {
+                toastr.options = {
+                    closeButton: false,
+                    debug: false,
+                    progressBar: true,
+                    positionClass: "toast-top-center",
+                    onclick: null,
+                    showDuration: "300",
+                    hideDuration: "1000",
+                    timeOut: "1500",
+                    extendedTimeOut: "1000",
+                    showEasing: "swing",
+                    hideEasing: "linear",
+                    showMethod: "fadeIn",
+                    hideMethod: "fadeOut"
+                };
+                toastr["info"]("you are not input chat info.");
+                return false;
+            }
+            // 发送消息 web socket
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+
     </script>
 {% endblock %}
