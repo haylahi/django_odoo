@@ -3,6 +3,7 @@
 import json
 from datetime import datetime
 
+from channels.consumer import SyncConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from base.utils import FORMAT_DATETIME
@@ -43,3 +44,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # 发送到 WebSocket
         await self.send(text_data=json.dumps({'message': _msg}))
+
+
+class EchoConsumer(SyncConsumer):
+
+    def websocket_connect(self, event):
+        self.send({"type": "websocket.accept"})
+
+    def websocket_receive(self, event):
+        self.send({"type": "websocket.send", "text": event["text"]})
