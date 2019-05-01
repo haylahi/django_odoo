@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.contrib.auth.validators import UnicodeUsernameValidator
 # noinspection PyUnresolvedReferences
 from django.db.models import (
-    Model, CharField, BooleanField, IntegerField,
+    Model, CharField, BooleanField, IntegerField, ManyToManyField,
     DateTimeField, ForeignKey, DateField, AutoField,
     CASCADE, SET_NULL, PROTECT
 )

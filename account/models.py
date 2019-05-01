@@ -17,8 +17,8 @@ CHOICES_ACCOUNT_TYPE = [
 DEFAULT_ACCOUNT_TYPE = 'bank'
 
 CHOICES_USAGE_TYPE = [
-    ('partner', '客户'),
-    ('employee', '员工'),
+    ('external', '客户'),
+    ('internal', '内部适用'),  # 目前适用于员工等等...
 ]
 
 
@@ -32,10 +32,18 @@ class AccountAccount(models.Model):
     account_name = models.CharField('开户名', max_length=255)
     account_bank = models.CharField('开户银行', max_length=255)
     account_card = models.CharField('开户卡号', max_length=255)
-    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, verbose_name='归属客户', null=True, blank=True)
 
-    belongs_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='所属员工', related_name='account_belongs_user')
-    create_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='创建用户', related_name='account_create_user')
+    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, verbose_name='归属客户', null=True, blank=True)
+    belongs_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name='所属员工', related_name='account_belongs_user'
+    )
+
+    create_user = models.ForeignKey(
+        User, on_delete=models.PROTECT, null=True, blank=True,
+        verbose_name='创建用户', related_name='account_create_user'
+    )
+
     create_time = models.DateTimeField('创建时间', default=datetime.now)
     is_active = models.BooleanField(default=True)
 

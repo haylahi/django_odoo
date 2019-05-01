@@ -220,6 +220,20 @@ class ClassCourseMap(models.Model):
         ordering = ['-create_time']
 
 
+class TestTag(models.Model):
+    """考试的标签"""
+    name = models.CharField('名称', max_length=255)
+    create_teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)
+    create_time = models.DateTimeField(default=datetime.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
 class Examination(models.Model):
     """
     考试 什么班级 什么课程才会有考试
@@ -238,6 +252,8 @@ class Examination(models.Model):
         'Teacher', on_delete=models.PROTECT, null=True, blank=True,
         verbose_name='阅卷老师', related_name='teacher_read_examination'
     )
+
+    test_tags = models.ManyToManyField(TestTag, blank=True, verbose_name='标签')
 
     test_type = models.CharField('考试类型', max_length=255, choices=CHOICES_EXAMINATION_TYPE)
     test_date = models.DateField('考试时间', null=True, blank=True)
@@ -289,6 +305,15 @@ class Examination(models.Model):
                 __logger__.error('Warn: no student to create score record.')
                 return False
 
+    @property
+    def test_records(self):
+        """该考试的记录"""
+        return self.examination_records.all().filter(is_active=True)
+
+    @property
+    def test_tags_list(self):
+        return self.test_tags.all().filter(is_active=True)
+
 
 class ScoreRecord(models.Model):
     """
@@ -319,7 +344,7 @@ class ScoreRecord(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}{}'.format(self.student.name, self.score)
+        return '{}[{}]'.format(self.student.name, self.score)
 
     class Meta:
         ordering = ['examination', '-score']
