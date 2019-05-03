@@ -1,4 +1,5 @@
-from django import db
+import json
+
 from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
@@ -98,11 +99,11 @@ def real_test(request):
 
     # value_lists
 
-    ex = models.Examination.objects.get(pk=3)
+    ex = models.Examination.objects.all()
+
     field_list = ['id', 'name', 'course_map', 'invigilator',
                   'read_teacher', 'test_type', 'test_date', 'test_tags']
 
     ret = generate_result_list(ex, field_list)
-    print(ret)
 
-    return HttpResponse('200')
+    return HttpResponse(json.dumps(ret))

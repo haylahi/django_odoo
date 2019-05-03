@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+
+    <script src="jquery.min.js"></script>
+</head>
+<body>
+
+<p id="showP">
+
+
+</p>
+
+
+<script>
+    var $pre = $('#showP');
+    var URL = `http://localhost:8000/school/real/test/`;
+
+    $(document).ready(function () {
+        $.ajax({
+            url: URL,
+            method: 'get',
+            success: function (result) {
+                var data = JSON.parse(result);
+                console.log(JSON.stringify(data));
+            }
+        })
+    })
+</script>
+
+</body>
+</html>

@@ -159,7 +159,3 @@ class UploadFileView(viewsets.ViewSet):
         else:
             _msg = 'UserError: request body error.'
             return Response(make_error_resp(_msg))
-
-
-def base_test(request):
-    return HttpResponse('<h2>200 OK</h2>', content_type='text/html', status=200)

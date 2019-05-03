@@ -100,27 +100,41 @@ FRONT_TYPE = 'type'
 FRONT_CHOICES = 'choices'
 FRONT_MODEL = 'model'
 FRONT_MODEL_ID = 'model_id'
+FRONT_CHOICES_VALUE = 'value'
+
+FRONT_BOOL_TRUE_STR = '是'
+FRONT_BOOL_FALSE_STR = '否'
 
 
-def _check_field_name(instance, field_list):
+def _check_field_name(model_obj, field_list):
     """
     检查字段是否存在
     """
     _ret = []
     for f in field_list:
         try:
-            instance._meta.get_field(f)
+            model_obj._meta.get_field(f)
         except Exception as e:
             _ret.append(f)
             __logger__.error(e)
     return True if len(_ret) == 0 else _ret
 
 
+def _get_app_model(model_obj):
+    """
+    :return 'app.model'
+
+    """
+    return '{app_label}.{model_name}'.format(
+        app_label=model_obj._meta.app_label,
+        model_name=model_obj._meta.model_name
+    )
+
+
 def _generate_field_dict(instance, field_name):
     """
     :param instance: 当前模型的实例对象
     :param field_name: 当前模型的要给字段
-    :return a dict key: field_name value a dict {}
 
     char         str
     fk           object
@@ -140,27 +154,20 @@ def _generate_field_dict(instance, field_name):
 
     """
 
-    _test = {
-        'type': 'int, str, m2o, choices, datetime, date, id, bool, method, m2m, o2m',
-        'data': '123',  # result,
-        'label': '标签',
-        'model': 'base.accountaccount',  # format(obj._meta.app_label, obj._meta.model_name)
-        'model_id': 1,
-        'choices': '[xxxx]',  # 可以选择的列表，
-    }
+    # 1.要返回的字典 2. 当前模型的实例 3. 字段的名称
+    _data_dict, _model_instance, _field_name = dict(), instance, field_name
 
-    _d = dict()
-    _field = instance._meta.get_field(field_name)
-    _label = _field.verbose_name if _field.verbose_name else _field.name
+    _field_object = _model_instance._meta.get_field(_field_name)
+    field_label_str = _field_object.verbose_name if _field_object.verbose_name else _field_object.name
 
-    if isinstance(_field, models.CharField):
-        _choices = getattr(_field, 'choices', [])
+    if isinstance(_field_object, models.CharField):
+        _choices = getattr(_field_object, 'choices', [])
         if len(_choices) == 0:
-            _d[FRONT_TYPE] = 'str'
-            _d[FRONT_DATA] = getattr(instance, field_name, '')
-            _d[FRONT_LABEL] = _label
+            _data_dict[FRONT_TYPE] = 'str'
+            _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name, '')
+            _data_dict[FRONT_LABEL] = field_label_str
         else:
-            _str = getattr(instance, 'get_{}_display'.format(_field.name))()
+            _str = getattr(_model_instance, 'get_{}_display'.format(_field_object.name))()
             _choices_list = list()
             for c in _choices:
                 choice_dict = dict()
@@ -168,66 +175,67 @@ def _generate_field_dict(instance, field_name):
                 choice_dict['value'] = c[0]
                 _choices_list.append(choice_dict)
 
-            _d[FRONT_TYPE] = 'choices'
-            _d[FRONT_DATA] = _str
-            _d[FRONT_LABEL] = _label
-            _d[FRONT_CHOICES] = str(_choices_list)
+            _data_dict[FRONT_TYPE] = 'choices'
+            _data_dict[FRONT_DATA] = _str
+            _data_dict[FRONT_CHOICES_VALUE] = getattr(_model_instance, _field_object.name, '')
+            _data_dict[FRONT_LABEL] = field_label_str
+            _data_dict[FRONT_CHOICES] = _choices_list
 
-    if isinstance(_field, models.ForeignKey):
-        fk_obj = getattr(instance, field_name, None)
+    if isinstance(_field_object, models.ForeignKey):
+        fk_obj = getattr(_model_instance, _field_name, None)
 
-        _d[FRONT_TYPE] = 'm2o'
-        _d[FRONT_DATA] = str(fk_obj) if fk_obj else ''
-        _d[FRONT_LABEL] = _label
-        _d[FRONT_MODEL] = '{}.{}'.format(fk_obj._meta.app_label, fk_obj._meta.model_name)
-        _d[FRONT_MODEL_ID] = fk_obj.id if fk_obj else 0
+        _data_dict[FRONT_TYPE] = 'm2o'
+        _data_dict[FRONT_DATA] = str(fk_obj) if fk_obj else ''
+        _data_dict[FRONT_LABEL] = field_label_str
+        _data_dict[FRONT_MODEL] = _get_app_model(fk_obj)
+        _data_dict[FRONT_MODEL_ID] = fk_obj.id if fk_obj else 0
 
-    if isinstance(_field, models.IntegerField):
-        _d[FRONT_TYPE] = 'int'
-        _d[FRONT_DATA] = getattr(instance, field_name, '')
-        _d[FRONT_LABEL] = _label
+    if isinstance(_field_object, models.IntegerField):
+        _data_dict[FRONT_TYPE] = 'int'
+        _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name, '')
+        _data_dict[FRONT_LABEL] = field_label_str
 
-    if isinstance(_field, models.BooleanField):
-        _bool = getattr(instance, field_name)
+    if isinstance(_field_object, models.BooleanField):
+        _bool = getattr(_model_instance, _field_name)
 
-        _d[FRONT_TYPE] = 'bool'
-        _d[FRONT_DATA] = '是' if _bool else '否'
-        _d[FRONT_LABEL] = _label
+        _data_dict[FRONT_TYPE] = 'bool'
+        _data_dict[FRONT_DATA] = FRONT_BOOL_TRUE_STR if _bool else FRONT_BOOL_FALSE_STR
+        _data_dict[FRONT_LABEL] = field_label_str
 
-    if isinstance(_field, models.DateTimeField):
-        _date = getattr(instance, field_name, None)
-        _d[FRONT_TYPE] = 'datetime'
-        _d[FRONT_DATA] = _date.strftime(FORMAT_DATETIME) if _date else ''
-        _d[FRONT_LABEL] = _label
+    if isinstance(_field_object, models.DateTimeField):
+        _date = getattr(_model_instance, _field_name, None)
+        _data_dict[FRONT_TYPE] = 'datetime'
+        _data_dict[FRONT_DATA] = _date.strftime(FORMAT_DATETIME) if _date else ''
+        _data_dict[FRONT_LABEL] = field_label_str
 
-    if isinstance(_field, models.DateField):
-        _date = getattr(instance, field_name, None)
-        _d[FRONT_TYPE] = 'date'
-        _d[FRONT_DATA] = _date.strftime(FORMAT_DATE) if _date else ''
-        _d[FRONT_LABEL] = _label
+    if isinstance(_field_object, models.DateField):
+        _date = getattr(_model_instance, _field_name, None)
+        _data_dict[FRONT_TYPE] = 'date'
+        _data_dict[FRONT_DATA] = _date.strftime(FORMAT_DATE) if _date else ''
+        _data_dict[FRONT_LABEL] = field_label_str
 
-    if isinstance(_field, models.AutoField):
-        _d[FRONT_TYPE] = 'id'
-        _d[FRONT_DATA] = getattr(instance, field_name)
-        _d[FRONT_LABEL] = 'ID'
+    if isinstance(_field_object, models.AutoField):
+        _data_dict[FRONT_TYPE] = 'id'
+        _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name)
+        _data_dict[FRONT_LABEL] = 'ID'
 
-    if isinstance(_field, models.ManyToManyField):
-        _model_obj = _field.model
-        _model_data = getattr(instance, _field.name).all().filter(is_active=True)
-        if len(_model_data) > 0:
-            _data_list = [str(o) for o in _model_data]
-            _id_list = [o.id for o in _model_data]
+    if isinstance(_field_object, models.ManyToManyField):
+        _model_obj = getattr(_model_instance, _field_object.name).model
+        _model_set = getattr(_model_instance, _field_object.name).all().filter(is_active=True)
+        if len(_model_set) > 0:
+            _data_list = [str(o) for o in _model_set]
+            _id_list = [o.id for o in _model_set]
         else:
             _data_list = []
             _id_list = []
 
-        _d[FRONT_TYPE] = 'm2m'
-        _d[FRONT_DATA] = str(_data_list)
-        _d[FRONT_LABEL] = _label
-        _d[FRONT_MODEL] = '{}.{}'.format(_model_obj._meta.app_label, _model_obj._meta.model_name)
-        _d[FRONT_MODEL_ID] = str(_id_list)
+        _data_dict[FRONT_TYPE] = 'm2m'
+        _data_dict[FRONT_DATA] = _data_list
+        _data_dict[FRONT_LABEL] = field_label_str
+        _data_dict[FRONT_MODEL] = _get_app_model(_model_obj)
+        _data_dict[FRONT_MODEL_ID] = _id_list
 
-    return _d
+    return _data_dict
 
 
 def generate_result_list(obj_list, field_list):
