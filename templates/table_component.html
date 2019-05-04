@@ -36,34 +36,16 @@
     <script>
         var dataUrl = `http://localhost:8000/school/real/test/`;
 
-        var data = {
-            dataCount: 10,
-            currentPage: 1,
-            hasPrev: false,
-            hasNext: true,
-            data: [
-                {
-                    index: 1,
-                    name: 'name',
-                    label: '名称',
-                    type: 'str',
-                    data: [
-                        {
-                            index: 1,
-                            value: 'abc',
-                        }
-                    ]
-                }, {
-                    index: 1,
-                    name: 'name',
-                    label: '名称',
-                    type: 'str',
-
-
+        $(document).ready(function () {
+            $.ajax({
+                url: dataUrl,
+                method: 'get',
+                success: function (result) {
+                    var tableData = JSON.parse(result);
+                    console.log(tableData);
                 }
-            ]
-        }
-
+            })
+        });
 
     </script>
 {% endblock %}

@@ -94,9 +94,11 @@ def create_file(path, content):
 # -----------------------------------------------------------------------------
 
 
+FRONT_NAME = 'name'
 FRONT_DATA = 'data'
 FRONT_LABEL = 'label'
 FRONT_TYPE = 'type'
+FRONT_INDEX = 'index'
 FRONT_CHOICES = 'choices'
 FRONT_MODEL = 'model'
 FRONT_MODEL_ID = 'model_id'

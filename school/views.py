@@ -4,7 +4,6 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
 
-from base.utils import generate_result_list
 from . import models
 from . import serializer
 
@@ -99,11 +98,4 @@ def real_test(request):
 
     # value_lists
 
-    ex = models.Examination.objects.all()
-
-    field_list = ['id', 'name', 'course_map', 'invigilator',
-                  'read_teacher', 'test_type', 'test_date', 'test_tags']
-
-    ret = generate_result_list(ex, field_list)
-
-    return HttpResponse(json.dumps(ret))
+    return HttpResponse(json.dumps('a'))
