@@ -2,40 +2,68 @@
 {% load base_tags %}
 
 {% block base_content %}
-    <div class="row-fluid" id="mine-div">
-        {% if model_data %}
-            {% generate_table model_object model_data model_field_list %}
+    <div class="row-fluid">
 
-            {% comment %}
-            <table class="table table-hover table-bordered">
-                <thead>
-                <tr>
-                    {% for col in model_field_list %}
-                        {% generate_table_header model_object col forloop.counter0 %}
-                    {% endfor %}
-                </tr>
-                </thead>
-                <tbody>
-                {% for obj in model_data %}
-                    <tr>
-                        {% get_col_index forloop.counter0 as col_index %}
-                        {% for col in model_field_list %}
-                            {% generate_table_body obj col col_index forloop.counter0 %}
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% endcomment %}
-        {% else %}
-            <h3>No Data</h3>
-        {% endif %}
+
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr>
+                <th>
+                    1
+                </th>
+                <th>
+                    1
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>
+                    1
+                </td>
+                <td>
+                    2
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
     </div>
 {% endblock %}
 
 {% block base_script %}
     <script>
-        $(document).ready(function () {
-        })
+        var dataUrl = `http://localhost:8000/school/real/test/`;
+
+        var data = {
+            dataCount: 10,
+            currentPage: 1,
+            hasPrev: false,
+            hasNext: true,
+            data: [
+                {
+                    index: 1,
+                    name: 'name',
+                    label: '名称',
+                    type: 'str',
+                    data: [
+                        {
+                            index: 1,
+                            value: 'abc',
+                        }
+                    ]
+                }, {
+                    index: 1,
+                    name: 'name',
+                    label: '名称',
+                    type: 'str',
+
+
+                }
+            ]
+        }
+
+
     </script>
 {% endblock %}

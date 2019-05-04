@@ -6,7 +6,6 @@ import os
 
 from django.apps import apps
 from django.conf import settings
-from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -18,7 +17,6 @@ from base.utils import (
 )
 from . import models
 from . import serializer as s
-from . import tasks
 
 
 class UnitCreateListView(viewsets.ViewSet):
@@ -144,14 +142,7 @@ class UploadFileView(viewsets.ViewSet):
             _b64 = base64.b64decode(_b64)
 
             # FIXME 修改这里的逻辑 可能会出现重复创建的情况  创建成功弹出一个通知
-            try:
-                res = tasks.tasks_create_file.delay('create_file', path=_path, content=_b64)
-                res.get(timeout=0.5)
-                print('--> celery task success')
-            except:
-                create_file(_path, _b64)
-                print('create file success')
-
+            create_file(_path, _b64)
             models.FileObject.objects.create(**file_object_attr)
             _ret = make_success_resp()
             return Response(_ret)

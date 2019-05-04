@@ -1,0 +1,208 @@
+[
+  {
+    "test_type": {
+      "data": "小测试",
+      "label": "考试类型",
+      "type": "choices",
+      "choices": [
+        {
+          "name": "期中",
+          "value": "m"
+        },
+        {
+          "name": "期末",
+          "value": "e"
+        },
+        {
+          "name": "补考",
+          "value": "a"
+        },
+        {
+          "name": "重修考试",
+          "value": "r"
+        },
+        {
+          "name": "小测试",
+          "value": "s"
+        },
+        {
+          "name": "年级统考",
+          "value": "g"
+        },
+        {
+          "name": "其他",
+          "value": "o"
+        }
+      ],
+      "value": "s"
+    },
+    "test_tags": {
+      "data": [
+        "伍晨",
+        "和莹",
+        "孔桂荣",
+        "王娟",
+        "王秀华",
+        "王秀梅",
+        "练旭",
+        "萧晶",
+        "许坤",
+        "陶琳"
+      ],
+      "label": "标签",
+      "type": "m2m",
+      "model_id": [
+        10,
+        1,
+        7,
+        3,
+        6,
+        5,
+        9,
+        4,
+        2,
+        8
+      ],
+      "model": "school.testtag"
+    },
+    "read_teacher": {
+      "data": "李欣",
+      "label": "阅卷老师",
+      "type": "m2o",
+      "model_id": 30,
+      "model": "school.teacher"
+    },
+    "test_date": {
+      "data": "2019-04-19",
+      "label": "考试时间",
+      "type": "date"
+    },
+    "name": {
+      "data": "英语小测试",
+      "label": "考试名称",
+      "type": "str"
+    },
+    "id": {
+      "data": 3,
+      "label": "ID",
+      "type": "id"
+    },
+    "invigilator": {
+      "data": "常利",
+      "label": "监考老师",
+      "type": "m2o",
+      "model_id": 12,
+      "model": "school.teacher"
+    },
+    "course_map": {
+      "data": "普通班级1115-高中一年级-[英语]",
+      "label": "课程",
+      "type": "m2o",
+      "model_id": 2,
+      "model": "school.classcoursemap"
+    }
+  },
+  {
+    "test_type": {
+      "data": "小测试",
+      "label": "考试类型",
+      "type": "choices",
+      "choices": [
+        {
+          "name": "期中",
+          "value": "m"
+        },
+        {
+          "name": "期末",
+          "value": "e"
+        },
+        {
+          "name": "补考",
+          "value": "a"
+        },
+        {
+          "name": "重修考试",
+          "value": "r"
+        },
+        {
+          "name": "小测试",
+          "value": "s"
+        },
+        {
+          "name": "年级统考",
+          "value": "g"
+        },
+        {
+          "name": "其他",
+          "value": "o"
+        }
+      ],
+      "value": "s"
+    },
+    "test_tags": {
+      "data": [
+        "伍晨",
+        "和莹",
+        "孔桂荣",
+        "王娟",
+        "王秀华",
+        "王秀梅",
+        "练旭",
+        "萧晶",
+        "许坤",
+        "陶琳"
+      ],
+      "label": "标签",
+      "type": "m2m",
+      "model_id": [
+        10,
+        1,
+        7,
+        3,
+        6,
+        5,
+        9,
+        4,
+        2,
+        8
+      ],
+      "model": "school.testtag"
+    },
+    "read_teacher": {
+      "data": "杨玉梅",
+      "label": "阅卷老师",
+      "type": "m2o",
+      "model_id": 17,
+      "model": "school.teacher"
+    },
+    "test_date": {
+      "data": "2019-04-21",
+      "label": "考试时间",
+      "type": "date"
+    },
+    "name": {
+      "data": "语文小测试",
+      "label": "考试名称",
+      "type": "str"
+    },
+    "id": {
+      "data": 4,
+      "label": "ID",
+      "type": "id"
+    },
+    "invigilator": {
+      "data": "李四",
+      "label": "监考老师",
+      "type": "m2o",
+      "model_id": 1,
+      "model": "school.teacher"
+    },
+    "course_map": {
+      "data": "普通班级1115-高中一年级-[语文]",
+      "label": "课程",
+      "type": "m2o",
+      "model_id": 1,
+      "model": "school.classcoursemap"
+    }
+  }
+]

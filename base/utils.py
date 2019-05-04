@@ -299,7 +299,12 @@ class MyUserManager(models.BaseUserManager):
 
 
 class CusTableHeader:
-    """自定义表头"""
+    """
+    自定义表头
+
+    TODO  重新编写 返回集 表头信息只返回一次 分页信息， 附加信息， 表头信息 真实内容
+
+    """
 
     def __init__(self):
         self.model_object = None

@@ -9,14 +9,13 @@
 </head>
 <body>
 
-<p id="showP">
+<div id="showDiv">
 
-
-</p>
+</div>
 
 
 <script>
-    var $pre = $('#showP');
+    var $div = $('#showDiv');
     var URL = `http://localhost:8000/school/real/test/`;
 
     $(document).ready(function () {
@@ -25,7 +24,12 @@
             method: 'get',
             success: function (result) {
                 var data = JSON.parse(result);
-                console.log(JSON.stringify(data));
+                console.log(data);
+                var tags = data[0].test_tags.data;
+                for (let i = 0; i < tags.length; i++) {
+
+                    $div.append('<p style="color: red;">' + tags[i] + '</P>')
+                }
             }
         })
     })
