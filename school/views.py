@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
 
-from base.utils import get_page_dict
+from base.utils import get_page_dict, PAGE_DICT_DATA, generate_table_data
 from . import models
 from . import serializer
 
@@ -98,13 +98,20 @@ def real_test(request):
     #     page_i = page_obj.page(p)
     #     print('current page list:  当前是第几页{}'.format(page_i.number), page_i.object_list)
 
+    """
+    primary_key
+    verbose_name
+    name
+    choices
+    editable
+    is_relation
+    related_model
+
+    """
+
     obj_list = models.ScoreRecord.objects.filter(is_active=True)
-    # 过滤条件
+    field_list = ['id', 'examination', 'student', 'real_score', 'score_level',
+                  'grade_point', 'credits', 'is_joined', 'is_passed', 'create_teacher']
 
-    ret = get_page_dict(request, obj_list, settings.PAGE_SIZE, settings.PAGE_OFFSET)
-
-    # 处理 querySet
-    obj_list = ret.get('currentData')
-    print(obj_list)
-
-    return HttpResponse(json.dumps('OK'))
+    ret = get_page_dict(request, obj_list, settings.PAGE_SIZE, field_list)
+    return HttpResponse(json.dumps(ret))

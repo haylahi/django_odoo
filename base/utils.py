@@ -84,6 +84,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from base import models
 
 PAGE_DICT_DATA = 'currentData'
+PAGE_DICT_MODEL = 'currentModel'
+PAGE_DICT_COUNT = 'dataCount'
 
 FRONT_NAME = 'name'
 FRONT_DATA = 'data'
@@ -92,8 +94,6 @@ FRONT_TYPE = 'type'
 FRONT_INDEX = 'index'
 FRONT_CHOICES = 'choices'
 FRONT_MODEL = 'model'
-FRONT_MODEL_ID = 'model_id'
-FRONT_CHOICES_VALUE = 'value'
 
 FRONT_BOOL_TRUE_STR = '是'
 FRONT_BOOL_FALSE_STR = '否'
@@ -111,22 +111,11 @@ def get_model_files(instance):
     return _ret
 
 
-def get_page_dict(request, obj_list, page_size, offset_page):
-    current_page_number = request.GET.get(settings.PAGE_STR, 1)
-    paginator = Paginator(obj_list, page_size, offset_page)
-    try:
-        current_page_obj = paginator.page(current_page_number)
-    except (PageNotAnInteger, EmptyPage):
-        current_page_obj = paginator.page(1)
-
-    return {
-        'dataCount': paginator.count,
-        'pageCount': paginator.num_pages,
-        'currentPage': current_page_obj.number,
-        PAGE_DICT_DATA: current_page_obj.object_list,
-        'hasPrev': current_page_obj.has_previous(),
-        'hasNext': current_page_obj.has_next(),
-    }
+def _get_app_model(model_obj):
+    return '{app_label}.{model_name}'.format(
+        app_label=model_obj._meta.app_label,
+        model_name=model_obj._meta.model_name
+    )
 
 
 def _check_field_name(model_obj, field_list):
@@ -143,150 +132,147 @@ def _check_field_name(model_obj, field_list):
     return True if len(_ret) == 0 else _ret
 
 
-def _get_app_model(model_obj):
-    return '{app_label}.{model_name}'.format(
-        app_label=model_obj._meta.app_label,
-        model_name=model_obj._meta.model_name
-    )
+def get_page_dict(request, obj_list, page_size, field_list=None):
+    current_page_number, _field_list = request.GET.get(settings.PAGE_STR, 1), field_list
+    paginator = Paginator(obj_list, page_size, settings.PAGE_OFFSET)
+    try:
+        current_page_obj = paginator.page(current_page_number)
+    except (PageNotAnInteger, EmptyPage):
+        current_page_obj = paginator.page(1)
+
+    if _field_list is None:
+        _field_list = obj_list.model._meta.fields
+
+    return {
+        PAGE_DICT_COUNT: paginator.count,
+        'pageCount': paginator.num_pages,
+        'currentPage': current_page_obj.number,
+        PAGE_DICT_DATA: generate_table_data(current_page_obj.object_list, _field_list),
+        PAGE_DICT_MODEL: _get_app_model(obj_list.model),
+        'hasPrev': current_page_obj.has_previous(),
+        'hasNext': current_page_obj.has_next(),
+    }
 
 
-def _generate_field_dict(instance, field_name):
-    """
-    :param instance: 当前模型的实例对象
-    :param field_name: 当前模型的要给字段
+def generate_table_data(obj_list, field_list):
+    model_obj, data_list = obj_list.model, list()
 
-    char         str
-    fk           object
-    Int          int
-    bool         bool
-    m2m          multi   不显示外键列表 要选择时去获取
-    o2m          multi
-    datetime     datetime
-    date         date
-    choices      multi       select_list
-    id           int
-    method       method
-    index        int
-
-    o2m method --> test_records
-    o2m filed_list --> ['a','b',...]
-
-    """
-
-    # 1.要返回的字典 2. 当前模型的实例 3. 字段的名称
-    _data_dict, _model_instance, _field_name = dict(), instance, field_name
-
-    _field_object = _model_instance._meta.get_field(_field_name)
-    field_label_str = _field_object.verbose_name if _field_object.verbose_name else _field_object.name
-
-    if isinstance(_field_object, models.CharField):
-        _choices = getattr(_field_object, 'choices', [])
-        if len(_choices) == 0:
-            _data_dict[FRONT_TYPE] = 'str'
-            _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name, '')
-            _data_dict[FRONT_LABEL] = field_label_str
-        else:
-            _str = getattr(_model_instance, 'get_{}_display'.format(_field_object.name))()
-            _choices_list = list()
-            for c in _choices:
-                choice_dict = dict()
-                choice_dict['name'] = c[1]
-                choice_dict['value'] = c[0]
-                _choices_list.append(choice_dict)
-
-            _data_dict[FRONT_TYPE] = 'choices'
-            _data_dict[FRONT_DATA] = _str
-            _data_dict[FRONT_CHOICES_VALUE] = getattr(_model_instance, _field_object.name, '')
-            _data_dict[FRONT_LABEL] = field_label_str
-            _data_dict[FRONT_CHOICES] = _choices_list
-
-    if isinstance(_field_object, models.ForeignKey):
-        fk_obj = getattr(_model_instance, _field_name, None)
-
-        _data_dict[FRONT_TYPE] = 'm2o'
-        _data_dict[FRONT_DATA] = str(fk_obj) if fk_obj else ''
-        _data_dict[FRONT_LABEL] = field_label_str
-        _data_dict[FRONT_MODEL] = _get_app_model(fk_obj)
-        _data_dict[FRONT_MODEL_ID] = fk_obj.id if fk_obj else 0
-
-    if isinstance(_field_object, models.IntegerField):
-        _data_dict[FRONT_TYPE] = 'int'
-        _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name, '')
-        _data_dict[FRONT_LABEL] = field_label_str
-
-    if isinstance(_field_object, models.BooleanField):
-        _bool = getattr(_model_instance, _field_name)
-
-        _data_dict[FRONT_TYPE] = 'bool'
-        _data_dict[FRONT_DATA] = FRONT_BOOL_TRUE_STR if _bool else FRONT_BOOL_FALSE_STR
-        _data_dict[FRONT_LABEL] = field_label_str
-
-    if isinstance(_field_object, models.DateTimeField):
-        _date = getattr(_model_instance, _field_name, None)
-        _data_dict[FRONT_TYPE] = 'datetime'
-        _data_dict[FRONT_DATA] = _date.strftime(FORMAT_DATETIME) if _date else ''
-        _data_dict[FRONT_LABEL] = field_label_str
-
-    if isinstance(_field_object, models.DateField):
-        _date = getattr(_model_instance, _field_name, None)
-        _data_dict[FRONT_TYPE] = 'date'
-        _data_dict[FRONT_DATA] = _date.strftime(FORMAT_DATE) if _date else ''
-        _data_dict[FRONT_LABEL] = field_label_str
-
-    if isinstance(_field_object, models.AutoField):
-        _data_dict[FRONT_TYPE] = 'id'
-        _data_dict[FRONT_DATA] = getattr(_model_instance, _field_name)
-        _data_dict[FRONT_LABEL] = 'ID'
-
-    if isinstance(_field_object, models.ManyToManyField):
-        _model_obj = getattr(_model_instance, _field_object.name).model
-        _model_set = getattr(_model_instance, _field_object.name).all().filter(is_active=True)
-        if len(_model_set) > 0:
-            _data_list = [str(o) for o in _model_set]
-            _id_list = [o.id for o in _model_set]
-        else:
-            _data_list = []
-            _id_list = []
-
-        _data_dict[FRONT_TYPE] = 'm2m'
-        _data_dict[FRONT_DATA] = _data_list
-        _data_dict[FRONT_LABEL] = field_label_str
-        _data_dict[FRONT_MODEL] = _get_app_model(_model_obj)
-        _data_dict[FRONT_MODEL_ID] = _id_list
-
-    return _data_dict
-
-
-def generate_result_list(obj_list, field_list):
-    """
-    为前端生成 result list
-
-    :param obj_list: querySet
-    :param field_list: list of fields
-    :return: list of data
-
-    """
-    _obj_list, _field_list, _result_list = obj_list, field_list, list()
-    if len(_field_list) == 0:
-        raise ValueError('ERROR: 字段列表不能为空...')
-    # 检查querySet
-    if _obj_list is None:
-        return _result_list
-    if not isinstance(obj_list, models.Model) and len(obj_list) == 0:
-        return _result_list
-    if isinstance(_obj_list, models.Model):
-        _obj_list = [_obj_list, ]
-    # 检查字段的正确性
-    _error = _check_field_name(_obj_list[0], _field_list)
+    _error = _check_field_name(model_obj, field_list)
     if _error is not True:
         raise ValueError('ERROR: 字段列表错误 错误字段有：{}'.format(_error))
 
-    for obj in _obj_list:
-        _d = dict()
-        for f in _field_list:
-            _d[f] = _generate_field_dict(obj, f)
-        _result_list.append(_d)
-    return _result_list
+    for index, field_str in enumerate(field_list):
+        val = generate_field_header(model_obj, obj_list, field_str, index)
+        data_list.append(val)
+
+    return data_list
+
+
+def generate_field_header(model_obj, obj_list, field_name, index):
+    _result = dict()
+
+    # common attrs
+    field_object = model_obj._meta.get_field(field_name)
+    field_label = field_object.verbose_name if field_object.verbose_name else field_object.name
+    is_primary_key = field_object.primary_key  # true or false
+
+    _result[FRONT_NAME] = field_object.name
+    _result[FRONT_LABEL] = field_label
+    _result[FRONT_INDEX] = index
+
+    if isinstance(field_object, models.CharField):
+        field_choices = getattr(field_object, 'choices', [])
+
+        # 判断是否为choices类型
+        if len(field_choices) == 0:
+            _result[FRONT_TYPE] = 'string'
+
+        else:
+            _choices_list = []
+            for c in field_choices:
+                _choice_dict = dict()
+                _choice_dict['value'] = c[0]
+                _choice_dict['name'] = c[1]
+                _choices_list.append(_choice_dict)
+            _result[FRONT_TYPE] = 'choices'
+            _result[FRONT_CHOICES] = _choices_list
+
+    if isinstance(field_object, models.ForeignKey):
+        fk_model_obj = field_object.related_model
+
+        _result[FRONT_TYPE] = 'm2o'
+        _result[FRONT_MODEL] = _get_app_model(fk_model_obj)
+
+    if isinstance(field_object, models.IntegerField):
+        _result[FRONT_TYPE] = 'integer'
+
+    if isinstance(field_object, models.BooleanField):
+        _result[FRONT_TYPE] = 'boolean'
+
+    if isinstance(field_object, models.DateTimeField):
+        _result[FRONT_TYPE] = 'datetime'
+
+    if isinstance(field_object, models.DateField):
+        _result[FRONT_TYPE] = 'date'
+
+    if is_primary_key:
+        _result[FRONT_TYPE] = 'id'
+
+    if isinstance(field_object, models.ManyToManyField):
+        m2m_model_obj = field_object.related_model
+
+        _result[FRONT_TYPE] = 'm2m'
+        _result[FRONT_MODEL] = _get_app_model(m2m_model_obj)
+
+    _val = generate_table_body(obj_list, field_object, _result[FRONT_TYPE])
+    _result[FRONT_DATA] = _val
+
+    return _result
+
+
+def generate_table_body(obj_list, field_obj, field_type):
+    _value_list, field_name = list(), field_obj.name
+
+    if len(obj_list) == 0:
+        return _value_list
+
+    for index, obj in enumerate(obj_list):
+        _cell_dict = dict()
+
+        # index
+        _cell_dict[FRONT_INDEX] = index
+
+        if field_type in ['string', 'choices', 'integer', 'id']:
+            _cell_dict[FRONT_DATA] = getattr(obj, field_name, '')
+
+        if field_type == 'm2o':
+            fk_model_instance = getattr(obj, field_name, None)
+            fk_model_id = field_obj._related_fields[0][1].name
+            _cell_dict[FRONT_DATA] = str(fk_model_instance) if fk_model_instance else ''
+            _cell_dict['model_id'] = getattr(fk_model_instance, fk_model_id, '')
+
+        if field_type == 'boolean':
+            _b = getattr(obj, field_name)
+            _cell_dict[FRONT_DATA] = FRONT_BOOL_TRUE_STR if _b else FRONT_BOOL_FALSE_STR
+
+        if field_type in ['datetime', 'date']:
+            _date = getattr(obj, field_name, None)
+            if _date:
+                _cell_dict[FRONT_DATA] = _date.strftime(FORMAT_DATETIME) \
+                    if field_type == 'datetime' else _date.strftime(FORMAT_DATE)
+            else:
+                _cell_dict[FRONT_DATA] = ''
+
+        if field_type == 'm2m':
+            m2m_model_list = getattr(obj, field_name).all().filter(is_active=True)
+            m2m_model_id = list(filter(lambda x: x.primary_key == True, field_obj.related_model._meta.fields))[0].name
+            if len(m2m_model_list) == 0:
+                _cell_dict[FRONT_DATA] = []
+            _cell_dict[FRONT_DATA] = [{'name': str(obj), 'value': getattr(obj, m2m_model_id)} for obj in m2m_model_list]
+
+        _value_list.append(_cell_dict)
+
+    return _value_list
 
 
 # -------------------- not raise error -------------------------

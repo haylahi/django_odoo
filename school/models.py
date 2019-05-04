@@ -305,15 +305,6 @@ class Examination(models.Model):
                 __logger__.error('Warn: no student to create score record.')
                 return False
 
-    @property
-    def test_records(self):
-        """该考试的记录"""
-        return self.examination_records.all().filter(is_active=True)
-
-    @property
-    def test_tags_list(self):
-        return self.test_tags.all().filter(is_active=True)
-
 
 class ScoreRecord(models.Model):
     """
