@@ -93,6 +93,26 @@ def create_file(path, content):
 
 # -----------------------------------------------------------------------------
 
+def get_page_dict(request, obj_list, page_size, offset_page):
+    from django.conf import settings
+    from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+
+    current_page_number = request.GET.get(settings.PAGE_STR, 1)
+    paginator = Paginator(obj_list, page_size, offset_page)
+    try:
+        current_page_obj = paginator.page(current_page_number)
+    except (PageNotAnInteger, EmptyPage):
+        current_page_obj = paginator.page(1)
+
+    return {
+        'dataCount': paginator.count,
+        'pageCount': paginator.num_pages,
+        'currentPage': current_page_obj.number,
+        'currentData': current_page_obj.object_list,
+        'hasPrev': current_page_obj.has_previous(),
+        'hasNext': current_page_obj.has_next(),
+    }
+
 
 FRONT_NAME = 'name'
 FRONT_DATA = 'data'

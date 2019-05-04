@@ -1,9 +1,11 @@
 import json
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from rest_framework import generics
 
+from base.utils import get_page_dict
 from . import models
 from . import serializer
 
@@ -96,6 +98,13 @@ def real_test(request):
     #     page_i = page_obj.page(p)
     #     print('current page list:  当前是第几页{}'.format(page_i.number), page_i.object_list)
 
-    # value_lists
+    obj_list = models.ScoreRecord.objects.filter(is_active=True)
+    # 过滤条件
 
-    return HttpResponse(json.dumps('a'))
+    ret = get_page_dict(request, obj_list, settings.PAGE_SIZE, settings.PAGE_OFFSET)
+
+    # 处理 querySet
+    obj_list = ret.get('currentData')
+    print(obj_list)
+
+    return HttpResponse(json.dumps('OK'))
