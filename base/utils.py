@@ -9,8 +9,6 @@ import random
 import time
 from pathlib import WindowsPath, PurePosixPath
 
-from base import models
-
 __logger__ = logging.getLogger(__name__)
 
 ORDER_STATE = [
@@ -72,19 +70,6 @@ def check_float(val: str) -> bool:
         return False
 
 
-def get_model_files(instance):
-    """获取模型的附件对象列表"""
-    # noinspection PyProtectedMember
-    app_label, model_name = instance._meta.app_label, \
-                            instance._meta.model_name
-    model_id = instance.id
-    _ret = models.FileObject.objects.filter(
-        is_active=True, app_label=app_label,
-        model_name=model_name, model_id=model_id
-    )
-    return _ret
-
-
 def create_file(path, content):
     __logger__.info('create a new file...')
     with open(path, 'wb') as f:
@@ -93,26 +78,12 @@ def create_file(path, content):
 
 # -----------------------------------------------------------------------------
 
-def get_page_dict(request, obj_list, page_size, offset_page):
-    from django.conf import settings
-    from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
-    current_page_number = request.GET.get(settings.PAGE_STR, 1)
-    paginator = Paginator(obj_list, page_size, offset_page)
-    try:
-        current_page_obj = paginator.page(current_page_number)
-    except (PageNotAnInteger, EmptyPage):
-        current_page_obj = paginator.page(1)
+from django.conf import settings
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from base import models
 
-    return {
-        'dataCount': paginator.count,
-        'pageCount': paginator.num_pages,
-        'currentPage': current_page_obj.number,
-        'currentData': current_page_obj.object_list,
-        'hasPrev': current_page_obj.has_previous(),
-        'hasNext': current_page_obj.has_next(),
-    }
-
+PAGE_DICT_DATA = 'currentData'
 
 FRONT_NAME = 'name'
 FRONT_DATA = 'data'
@@ -126,6 +97,36 @@ FRONT_CHOICES_VALUE = 'value'
 
 FRONT_BOOL_TRUE_STR = '是'
 FRONT_BOOL_FALSE_STR = '否'
+
+
+def get_model_files(instance):
+    """获取模型的附件对象列表"""
+    # noinspection PyProtectedMember
+    app_label, model_name = instance._meta.app_label, instance._meta.model_name
+    model_id = instance.id
+    _ret = models.FileObject.objects.filter(
+        is_active=True, app_label=app_label,
+        model_name=model_name, model_id=model_id
+    )
+    return _ret
+
+
+def get_page_dict(request, obj_list, page_size, offset_page):
+    current_page_number = request.GET.get(settings.PAGE_STR, 1)
+    paginator = Paginator(obj_list, page_size, offset_page)
+    try:
+        current_page_obj = paginator.page(current_page_number)
+    except (PageNotAnInteger, EmptyPage):
+        current_page_obj = paginator.page(1)
+
+    return {
+        'dataCount': paginator.count,
+        'pageCount': paginator.num_pages,
+        'currentPage': current_page_obj.number,
+        PAGE_DICT_DATA: current_page_obj.object_list,
+        'hasPrev': current_page_obj.has_previous(),
+        'hasNext': current_page_obj.has_next(),
+    }
 
 
 def _check_field_name(model_obj, field_list):
@@ -143,10 +144,6 @@ def _check_field_name(model_obj, field_list):
 
 
 def _get_app_model(model_obj):
-    """
-    :return 'app.model'
-
-    """
     return '{app_label}.{model_name}'.format(
         app_label=model_obj._meta.app_label,
         model_name=model_obj._meta.model_name
@@ -319,16 +316,15 @@ class MyUserManager(models.BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
         return self._create_user(username, password, **extra_fields)
 
-
-class CusTableHeader:
-    """
-    自定义表头
-
-    TODO  重新编写 返回集 表头信息只返回一次 分页信息， 附加信息， 表头信息 真实内容
-
-    """
-
-    def __init__(self):
-        self.model_object = None
-        self.model_field_list = []
-        self.model_data = None
+# class CusTableHeader:
+#     """
+#     自定义表头
+#
+#     TODO  重新编写 返回集 表头信息只返回一次 分页信息， 附加信息， 表头信息 真实内容
+#
+#     """
+#
+#     def __init__(self):
+#         self.model_object = None
+#         self.model_field_list = []
+#         self.model_data = None
